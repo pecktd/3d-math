@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Math: A Short Illustrated Guide</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+  :root {
+    --bg: #fbf9f4;
+    --paper: #ffffff;
+    --ink: #1f2937;
+    --ink-soft: #4b5563;
+    --muted: #6b7280;
+    --rule: #e5e7eb;
+    --rule-soft: #f1f0eb;
+    --accent: #1d4ed8;
+    --accent-2: #c2410c;
+    --accent-3: #15803d;
+    --accent-4: #6d28d9;
+    --note-bg: #fff8e6;
+    --note-bd: #f0d77a;
+    --code-bg: #f3f4f6;
+    --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Source Serif Pro', serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  .page {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    max-width: 1180px;
+    margin: 0 auto;
+    gap: 0;
+  }
+
+  nav.toc {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 36px 16px 36px 24px;
+    border-right: 1px solid var(--rule);
+    font-family: var(--sans);
+    font-size: 13.5px;
+  }
+  nav.toc h2 {
+    font-family: var(--sans);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  nav.toc ol { list-style: none; padding: 0; margin: 0; }
+  nav.toc li { margin: 0; }
+  nav.toc a {
+    display: block;
+    color: var(--ink-soft);
+    padding: 5px 8px;
+    border-left: 2px solid transparent;
+    border-radius: 0 4px 4px 0;
+    text-decoration: none;
+  }
+  nav.toc a:hover { background: var(--rule-soft); color: var(--ink); }
+  nav.toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--rule-soft); }
+
+  article {
+    padding: 48px 56px 100px;
+    max-width: 760px;
+  }
+
+  header.book-header {
+    margin-bottom: 56px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+  header.book-header h1 {
+    font-family: var(--serif);
+    font-size: 36px;
+    line-height: 1.15;
+    margin: 0 0 8px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  header.book-header .subtitle {
+    color: var(--muted);
+    font-style: italic;
+    margin: 0;
+  }
+  header.book-header .meta {
+    margin-top: 18px;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  h2.chapter {
+    font-family: var(--serif);
+    font-size: 26px;
+    margin: 56px 0 6px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  h2.chapter .num {
+    color: var(--accent);
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-size: 19px;
+    margin: 28px 0 6px;
+    font-weight: 600;
+  }
+
+  p { margin: 0 0 14px; }
+  p.lead { font-size: 18px; color: var(--ink-soft); margin-top: 4px; }
+
+  code {
+    font-family: var(--mono);
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.92em;
+  }
+
+  .key {
+    margin: 22px 0;
+    padding: 14px 18px;
+    background: var(--note-bg);
+    border-left: 4px solid var(--note-bd);
+    border-radius: 0 6px 6px 0;
+  }
+  .key strong { font-family: var(--sans); font-size: 12px; letter-spacing: 1px;
+                text-transform: uppercase; color: #92660a; display: block; margin-bottom: 4px; }
+
+  .example {
+    margin: 22px 0;
+    padding: 14px 18px;
+    background: var(--paper);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  .example strong.label { font-family: var(--sans); font-size: 12px; letter-spacing: 1px;
+                          text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 4px; }
+  .example p:last-child { margin-bottom: 0; }
+
+  figure {
+    margin: 28px 0;
+    text-align: center;
+  }
+  figure svg.diagram {
+    max-width: 100%;
+    height: auto;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 8px;
+  }
+  figure figcaption {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  figure figcaption .figlabel {
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  .row-figs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin: 24px 0;
+  }
+  .row-figs figure { margin: 0; }
+  .row-figs-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin: 24px 0;
+  }
+  .row-figs-3 figure { margin: 0; }
+
+  .math-display {
+    margin: 18px 0;
+    padding: 6px 4px;
+    overflow-x: auto;
+  }
+
+  ul, ol { padding-left: 22px; margin: 6px 0 14px; }
+  li { margin: 4px 0; }
+
+  .matrix-pretty {
+    display: inline-grid;
+    grid-template-columns: repeat(3, 70px);
+    border-left: 2px solid var(--ink);
+    border-right: 2px solid var(--ink);
+    padding: 6px 8px;
+    font-family: var(--mono);
+    text-align: right;
+    margin: 6px 0;
+  }
+  .matrix-pretty.cols-3 { grid-template-columns: repeat(3, 70px); }
+  .matrix-pretty.cols-4 { grid-template-columns: repeat(4, 70px); }
+  .matrix-pretty span { padding: 3px 6px; }
+
+  hr.divider {
+    border: 0;
+    border-top: 1px solid var(--rule);
+    margin: 56px 0;
+  }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--sans);
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  @media (max-width: 900px) {
+    .page { grid-template-columns: 1fr; }
+    nav.toc {
+      position: static;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--rule);
+      padding: 18px 20px;
+    }
+    article { padding: 28px 22px 80px; }
+    .row-figs, .row-figs-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="toc" id="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#ch1">1. The number line</a></li>
+      <li><a href="#ch2">2. Vectors in 2D</a></li>
+      <li><a href="#ch3">3. Adding and scaling vectors</a></li>
+      <li><a href="#ch4">4. Vectors in 3D</a></li>
+      <li><a href="#ch5">5. The dot product</a></li>
+      <li><a href="#ch6">6. The cross product</a></li>
+      <li><a href="#ch7">7. Matrices as transformations</a></li>
+      <li><a href="#ch8">8. Matrix multiplication</a></li>
+      <li><a href="#ch9">9. Distance between points</a></li>
+      <li><a href="#ch10">10. Interpolation</a></li>
+      <li><a href="#ch11">11. Cubic splines</a></li>
+      <li><a href="#ch12">12. Radial basis functions</a></li>
+      <li><a href="#ch13">13. RBF interpolation</a></li>
+    </ol>
+  </nav>
+
+  <article>
+    <header class="book-header">
+      <h1>3D Math, from algebra to radial basis functions</h1>
+      <p class="subtitle">A short illustrated guide.</p>
+      <p class="meta">Each chapter builds on the previous one. Read in order.</p>
+    </header>
+
+    <!-- ============== CHAPTER 1 ============== -->
+    <section id="ch1">
+      <h2 class="chapter"><span class="num">Chapter 1</span>The number line</h2>
+      <p class="lead">Before we touch vectors, let us agree on the simplest setting: numbers on a line.</p>
+
+      <p>Every real number has a place on the line. Positive numbers to the right, negatives to the left, zero in the middle. The <em>distance</em> between two numbers \(a\) and \(b\) is the absolute value of their difference:</p>
+
+      <div class="math-display">$$ d(a, b) \;=\; |\,a - b\,| $$</div>
+
+      <p>The bars mean &ldquo;always positive.&rdquo; Distance never depends on which direction you face.</p>
+
+      <figure id="fig-numberline"><svg class="diagram" viewBox="0 0 520 120"></svg>
+        <figcaption><span class="figlabel">Figure 1.1.</span> The distance between \(a = -2\) and \(b = 3\) is \(|{-2} - 3| = 5\).</figcaption>
+      </figure>
+
+      <div class="example"><strong class="label">Example</strong>
+        <p>\(a = -2,\;\; b = 3\). Then \(d(a,b) = |-2 - 3| = |-5| = 5\). Swapping them gives \(|3 - (-2)| = |5| = 5\). Same answer.</p>
+      </div>
+
+      <div class="key"><strong>Key idea</strong>
+        Distance is symmetric and never negative. Subtract, then take absolute value.</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 2 ============== -->
+    <section id="ch2">
+      <h2 class="chapter"><span class="num">Chapter 2</span>Vectors in 2D</h2>
+      <p class="lead">A vector is two numbers grouped together. Drawn as an arrow from the origin.</p>
+
+      <p>A vector in 2D is written</p>
+      <div class="math-display">$$ \mathbf{v} = (x, y) $$</div>
+      <p>where \(x\) and \(y\) are called the <em>components</em>. We draw it as an arrow that starts at the origin \((0, 0)\) and ends at the point \((x, y)\).</p>
+
+      <p>The <em>length</em> of \(\mathbf{v}\) (also called magnitude or norm, written \(\|\mathbf{v}\|\)) comes from the Pythagorean theorem applied to the right triangle made by the components:</p>
+      <div class="math-display">$$ \|\mathbf{v}\| \;=\; \sqrt{x^2 + y^2} $$</div>
+
+      <figure id="fig-vector-2d"><svg class="diagram" viewBox="0 0 520 360"></svg>
+        <figcaption><span class="figlabel">Figure 2.1.</span> The vector \(\mathbf{v} = (3, 4)\) has length \(\sqrt{3^2 + 4^2} = \sqrt{25} = 5\).</figcaption>
+      </figure>
+
+      <div class="example"><strong class="label">Example</strong>
+        <p>If \(\mathbf{v} = (3, 4)\), then \(\|\mathbf{v}\| = \sqrt{9 + 16} = \sqrt{25} = 5\). If \(\mathbf{u} = (-2, 0)\), then \(\|\mathbf{u}\| = \sqrt{4 + 0} = 2\). Length is never negative.</p>
+      </div>
+
+      <div class="key"><strong>Two ways to read a vector</strong>
+        A position (the point at the tip), or an arrow (a direction with a length). For 3D math we mostly use the arrow view.</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 3 ============== -->
+    <section id="ch3">
+      <h2 class="chapter"><span class="num">Chapter 3</span>Adding and scaling vectors</h2>
+      <p class="lead">Add component-wise. Scale by a single number.</p>
+
+      <h3>Addition</h3>
+      <p>To add two vectors, add their components:</p>
+      <div class="math-display">$$ \mathbf{a} + \mathbf{b} \;=\; (a_x + b_x,\; a_y + b_y) $$</div>
+
+      <p>Geometrically, there are two equivalent pictures.</p>
+      <ul>
+        <li><strong>Tip to tail:</strong> place the tail of \(\mathbf{b}\) at the tip of \(\mathbf{a}\). The arrow from the origin to the new tip is \(\mathbf{a} + \mathbf{b}\).</li>
+        <li><strong>Parallelogram:</strong> draw \(\mathbf{a}\) and \(\mathbf{b}\) from the origin. Complete the parallelogram. The diagonal from the origin is \(\mathbf{a} + \mathbf{b}\).</li>
+      </ul>
+
+      <figure id="fig-vector-add"><svg class="diagram" viewBox="0 0 700 360"></svg>
+        <figcaption><span class="figlabel">Figure 3.1.</span> Two views of the same operation. Both rules give the same sum.</figcaption>
+      </figure>
+
+      <h3>Subtraction</h3>
+      <p>Subtraction also goes component-wise:</p>
+      <div class="math-display">$$ \mathbf{a} - \mathbf{b} \;=\; (a_x - b_x,\; a_y - b_y) $$</div>
+
+      <p>The geometric meaning matters: <strong>\(\mathbf{a} - \mathbf{b}\) is the displacement that takes you from the tip of \(\mathbf{b}\) to the tip of \(\mathbf{a}\)</strong>. Its length is the straight-line distance between those two points. Hold on to this — it returns in Chapter 9.</p>
+
+      <figure id="fig-vector-sub"><svg class="diagram" viewBox="0 0 520 360"></svg>
+        <figcaption><span class="figlabel">Figure 3.2.</span> The vector \(\mathbf{a} - \mathbf{b}\) connects the tip of \(\mathbf{b}\) to the tip of \(\mathbf{a}\).</figcaption>
+      </figure>
+
+      <h3>Scalar multiplication</h3>
+      <p>A scalar is a plain number. Multiplying a vector by a scalar \(k\) stretches every component:</p>
+      <div class="math-display">$$ k\,\mathbf{a} \;=\; (k\,a_x,\; k\,a_y) $$</div>
+      <p>Effects:</p>
+      <ul>
+        <li>\(k > 1\): the vector gets longer in the same direction.</li>
+        <li>\(0 < k < 1\): it gets shorter.</li>
+        <li>\(k < 0\): it flips to the opposite direction.</li>
+        <li>\(k = -1\): same length, opposite direction.</li>
+      </ul>
+
+      <div class="example"><strong class="label">Example</strong>
+        <p>\(\mathbf{a} = (2, 3)\). Then \(2\mathbf{a} = (4, 6)\) and \(-\mathbf{a} = (-2, -3)\). Both have a clear geometric story: stretch and flip.</p>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 4 ============== -->
+    <section id="ch4">
+      <h2 class="chapter"><span class="num">Chapter 4</span>Vectors in 3D</h2>
+      <p class="lead">Add a third number. The rules do not change.</p>
+
+      <p>A 3D vector has three components:</p>
+      <div class="math-display">$$ \mathbf{v} = (x, y, z), \qquad \|\mathbf{v}\| = \sqrt{x^2 + y^2 + z^2} $$</div>
+
+      <p>Addition, subtraction, scaling: still component-wise.</p>
+      <div class="math-display">$$ \mathbf{a} + \mathbf{b} = (a_x+b_x,\;a_y+b_y,\;a_z+b_z), \qquad k\,\mathbf{a} = (k a_x,\; k a_y,\; k a_z) $$</div>
+
+      <figure id="fig-vector-3d"><svg class="diagram" viewBox="0 0 520 360"></svg>
+        <figcaption><span class="figlabel">Figure 4.1.</span> A 3D vector \(\mathbf{v} = (3, 2, 2)\). Length \(= \sqrt{9 + 4 + 4} = \sqrt{17} \approx 4.12\).</figcaption>
+      </figure>
+
+      <p>The Pythagorean idea generalizes: drop a vertical line from the tip to the \(xy\)-plane to form a right triangle. The length of the projection on the \(xy\)-plane is \(\sqrt{x^2+y^2}\). Combine with the \(z\) leg:</p>
+      <div class="math-display">$$ \|\mathbf{v}\|^2 \;=\; \big(\sqrt{x^2+y^2}\big)^2 + z^2 \;=\; x^2 + y^2 + z^2 $$</div>
+
+      <div class="key"><strong>Key idea</strong>
+        Everything you learned for 2D carries over to 3D: just include the \(z\) component everywhere. The same is true for 4D, 5D, and so on.</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 5 ============== -->
+    <section id="ch5">
+      <h2 class="chapter"><span class="num">Chapter 5</span>The dot product</h2>
+      <p class="lead">A single number that measures how aligned two vectors are.</p>
+
+      <h3>Definition</h3>
+      <p>The dot product of two vectors is</p>
+      <div class="math-display">$$ \mathbf{a} \cdot \mathbf{b} \;=\; a_x b_x + a_y b_y + a_z b_z $$</div>
+      <p>(For 2D vectors, drop the \(z\) term.) The result is one number, never a vector.</p>
+
+      <h3>Geometric meaning</h3>
+      <p>There is a second formula, which looks different but always gives the same value:</p>
+      <div class="math-display">$$ \mathbf{a} \cdot \mathbf{b} \;=\; \|\mathbf{a}\|\,\|\mathbf{b}\|\cos\theta $$</div>
+      <p>where \(\theta\) is the angle between the two vectors. The two formulas together let you compute the angle:</p>
+      <div class="math-display">$$ \cos\theta \;=\; \frac{\mathbf{a} \cdot \mathbf{b}}{\|\mathbf{a}\|\,\|\mathbf{b}\|} $$</div>
+
+      <p>Because \(\cos\theta\) ranges from \(-1\) to \(+1\), the sign of the dot product tells you the rough direction:</p>
+      <ul>
+        <li><strong>Positive:</strong> the vectors point in roughly the same direction (acute angle).</li>
+        <li><strong>Zero:</strong> the vectors are perpendicular.</li>
+        <li><strong>Negative:</strong> they point in roughly opposite directions (obtuse angle).</li>
+      </ul>
+
+      <figure id="fig-dot-sign"><svg class="diagram" viewBox="0 0 600 220"></svg>
+        <figcaption><span class="figlabel">Figure 5.1.</span> The sign of \(\mathbf{a}\cdot\mathbf{b}\) tracks the angle between the two vectors.</figcaption>
+      </figure>
+
+      <h3>Projection</h3>
+      <p>The dot product also gives the length of the &ldquo;shadow&rdquo; that \(\mathbf{b}\) casts on \(\mathbf{a}\). The projection length is</p>
+      <div class="math-display">$$ \text{proj length} \;=\; \frac{\mathbf{a} \cdot \mathbf{b}}{\|\mathbf{a}\|} $$</div>
+
+      <figure id="fig-dot-projection"><svg class="diagram" viewBox="0 0 520 320"></svg>
+        <figcaption><span class="figlabel">Figure 5.2.</span> The thick green segment is the projection of \(\mathbf{b}\) onto \(\mathbf{a}\). Its length equals \((\mathbf{a}\cdot\mathbf{b})/\|\mathbf{a}\|\).</figcaption>
+      </figure>
+
+      <div class="example"><strong class="label">Example</strong>
+        <p>Take \(\mathbf{a} = (1, 2, 0)\) and \(\mathbf{b} = (3, 0, 4)\).</p>
+        <p>\(\mathbf{a}\cdot\mathbf{b} = 1\cdot3 + 2\cdot0 + 0\cdot4 = 3\). Lengths: \(\|\mathbf{a}\| = \sqrt{5} \approx 2.236\), \(\|\mathbf{b}\| = \sqrt{25} = 5\). So \(\cos\theta = 3 / (5\sqrt{5}) \approx 0.268\), giving \(\theta \approx 74.5^\circ\).</p>
+      </div>
+
+      <div class="key"><strong>Useful identity</strong>
+        \(\mathbf{a}\cdot\mathbf{a} = \|\mathbf{a}\|^2\). Dotting a vector with itself gives the square of its length.</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 6 ============== -->
+    <section id="ch6">
+      <h2 class="chapter"><span class="num">Chapter 6</span>The cross product</h2>
+      <p class="lead">A 3D-only operation that produces a vector perpendicular to the two inputs.</p>
+
+      <h3>Definition</h3>
+      <p>For \(\mathbf{a} = (a_x, a_y, a_z)\) and \(\mathbf{b} = (b_x, b_y, b_z)\),</p>
+      <div class="math-display">$$ \mathbf{a}\times\mathbf{b} \;=\; \big(\, a_y b_z - a_z b_y,\;\; a_z b_x - a_x b_z,\;\; a_x b_y - a_y b_x \,\big) $$</div>
+      <p>Unlike the dot product, the result is a <em>vector</em>, not a number.</p>
+
+      <h3>Three things to remember</h3>
+      <ol>
+        <li><strong>Perpendicularity.</strong> \(\mathbf{a}\times\mathbf{b}\) is perpendicular to both \(\mathbf{a}\) and \(\mathbf{b}\). It points out of the plane that they span.</li>
+        <li><strong>Length equals area.</strong> \(\|\mathbf{a}\times\mathbf{b}\| = \|\mathbf{a}\|\,\|\mathbf{b}\|\sin\theta\), which is exactly the area of the parallelogram with sides \(\mathbf{a}\) and \(\mathbf{b}\).</li>
+        <li><strong>Right-hand rule.</strong> Point your right hand from \(\mathbf{a}\) toward \(\mathbf{b}\). Your thumb points in the direction of \(\mathbf{a}\times\mathbf{b}\).</li>
+      </ol>
+
+      <figure id="fig-cross-product"><svg class="diagram" viewBox="0 0 520 360"></svg>
+        <figcaption><span class="figlabel">Figure 6.1.</span> \(\mathbf{a}\times\mathbf{b}\) sticks straight up out of the parallelogram spanned by \(\mathbf{a}\) and \(\mathbf{b}\). Its length equals the area of that parallelogram.</figcaption>
+      </figure>
+
+      <div class="example"><strong class="label">Example</strong>
+        <p>\(\mathbf{a} = (1, 0, 0)\) (along x) and \(\mathbf{b} = (0, 1, 0)\) (along y). Plug in:</p>
+        <div class="math-display">$$ \mathbf{a}\times\mathbf{b} = (0\cdot 0 - 0\cdot 1,\;\; 0\cdot 0 - 1\cdot 0,\;\; 1\cdot 1 - 0\cdot 0) = (0, 0, 1) $$</div>
+        <p>The result points along \(+z\), which is exactly &ldquo;up&rdquo; out of the \(xy\)-plane. Swap them: \(\mathbf{b}\times\mathbf{a} = (0, 0, -1)\). Order matters.</p>
+      </div>
+
+      <div class="key"><strong>Key facts</strong>
+        <ul style="margin: 6px 0;">
+          <li>\(\mathbf{a}\times\mathbf{b} = -(\mathbf{b}\times\mathbf{a})\). The cross product is anti-commutative.</li>
+          <li>If \(\mathbf{a}\) and \(\mathbf{b}\) are parallel, \(\mathbf{a}\times\mathbf{b} = \mathbf{0}\). They span no plane, so there is no perpendicular direction.</li>
+          <li>The dot product gives an angle (alignment). The cross product gives a perpendicular vector and an area.</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 7 ============== -->
+    <section id="ch7">
+      <h2 class="chapter"><span class="num">Chapter 7</span>Matrices as transformations</h2>
+      <p class="lead">A matrix takes every vector and maps it to a new vector. Think of it as a function.</p>
+
+      <h3>Notation</h3>
+      <p>A 2&times;2 matrix and its action on a 2D vector:</p>
+      <div class="math-display">$$ M \;=\; \begin{bmatrix} a & b \\ c & d \end{bmatrix}, \qquad
+        M\,\mathbf{v} \;=\; \begin{bmatrix} a & b \\ c & d \end{bmatrix} \begin{bmatrix} x \\ y \end{bmatrix} \;=\; \begin{bmatrix} a x + b y \\ c x + d y \end{bmatrix} $$</div>
+
+      <p>Read it like a recipe: the first output number is &ldquo;\(a\) times \(x\), plus \(b\) times \(y\).&rdquo; The second is &ldquo;\(c\) times \(x\), plus \(d\) times \(y\).&rdquo;</p>
+
+      <h3>The columns are images of the basis</h3>
+      <p>Try plugging in \(\mathbf{v} = (1, 0)\). You get \((a, c)\) — the first column of \(M\). Now try \(\mathbf{v} = (0, 1)\). You get \((b, d)\) — the second column.</p>
+
+      <p>This is the most useful way to read a matrix:</p>
+
+      <div class="key"><strong>Key idea</strong>
+        The columns of a matrix tell you where the basis vectors land. \((1,0) \mapsto\) first column, \((0,1) \mapsto\) second column. Every other vector is a combination, so the columns determine the whole transformation.</div>
+
+      <figure id="fig-matrix-transform"><svg class="diagram" viewBox="0 0 700 360"></svg>
+        <figcaption><span class="figlabel">Figure 7.1.</span> Left: the original grid with basis vectors. Right: the image after applying \(M = \big[\begin{smallmatrix}1 & -0.5\\ 0.5 & 1\end{smallmatrix}\big]\). The blue and orange basis arrows have moved to the columns of \(M\); the entire grid follows.</figcaption>
+      </figure>
+
+      <h3>Common 2&times;2 transformations</h3>
+
+      <div class="row-figs">
+        <figure id="fig-trans-rot"><svg class="diagram" viewBox="0 0 320 260"></svg>
+          <figcaption><span class="figlabel">Rotation 90°.</span> \(M = \big[\begin{smallmatrix}0 & -1\\ 1 & 0\end{smallmatrix}\big]\)</figcaption>
+        </figure>
+        <figure id="fig-trans-scale"><svg class="diagram" viewBox="0 0 320 260"></svg>
+          <figcaption><span class="figlabel">Uniform scale.</span> \(M = \big[\begin{smallmatrix}1.7 & 0\\ 0 & 1.7\end{smallmatrix}\big]\)</figcaption>
+        </figure>
+        <figure id="fig-trans-shear"><svg class="diagram" viewBox="0 0 320 260"></svg>
+          <figcaption><span class="figlabel">Shear.</span> \(M = \big[\begin{smallmatrix}1 & 0.7\\ 0 & 1\end{smallmatrix}\big]\)</figcaption>
+        </figure>
+        <figure id="fig-trans-reflect"><svg class="diagram" viewBox="0 0 320 260"></svg>
+          <figcaption><span class="figlabel">Reflection.</span> Across the \(y\)-axis: \(M = \big[\begin{smallmatrix}-1 & 0\\ 0 & 1\end{smallmatrix}\big]\)</figcaption>
+        </figure>
+      </div>
+
+      <h3>The determinant</h3>
+      <p>For a 2&times;2 matrix, the <em>determinant</em> is</p>
+      <div class="math-display">$$ \det(M) \;=\; ad - bc $$</div>
+      <p>It is the factor by which the matrix scales area. The unit square has area 1; the parallelogram it gets mapped to has area \(|\det(M)|\). If the determinant is negative, the matrix flips orientation (mirror image).</p>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 8 ============== -->
+    <section id="ch8">
+      <h2 class="chapter"><span class="num">Chapter 8</span>Matrix multiplication</h2>
+      <p class="lead">If you do one transformation then another, that combined operation is also a matrix.</p>
+
+      <p>Given two 2&times;2 matrices \(A\) and \(B\), their product \(AB\) is the matrix that does &ldquo;first \(B\), then \(A\)&rdquo;. That is,</p>
+      <div class="math-display">$$ (AB)\,\mathbf{v} \;=\; A\,(B\,\mathbf{v}) $$</div>
+
+      <p>The formula for the product:</p>
+      <div class="math-display">$$ A B \;=\; \begin{bmatrix} a & b \\ c & d \end{bmatrix}\!\begin{bmatrix} e & f \\ g & h \end{bmatrix} \;=\; \begin{bmatrix} ae + bg & af + bh \\ ce + dg & cf + dh \end{bmatrix} $$</div>
+
+      <p>Each entry of \(AB\) is a dot product: row \(i\) of \(A\) dotted with column \(j\) of \(B\).</p>
+
+      <h3>Order matters</h3>
+      <p>In general, \(AB \neq BA\). Rotating then scaling can be different from scaling then rotating, depending on what kind of scaling. Always pay attention to the order.</p>
+
+      <figure id="fig-matrix-mul"><svg class="diagram" viewBox="0 0 700 240"></svg>
+        <figcaption><span class="figlabel">Figure 8.1.</span> Apply \(B\) (shear), then \(A\) (rotate 90°). The combined effect is the same as applying \(AB\) directly.</figcaption>
+      </figure>
+
+      <div class="example"><strong class="label">Example</strong>
+        <p>Let \(A = \big[\begin{smallmatrix}0 & -1\\ 1 & 0\end{smallmatrix}\big]\) (rotate 90°) and \(B = \big[\begin{smallmatrix}2 & 0\\ 0 & 2\end{smallmatrix}\big]\) (scale by 2). Then</p>
+        <div class="math-display">$$ AB = \begin{bmatrix}0 & -1\\ 1 & 0\end{bmatrix}\!\begin{bmatrix}2 & 0\\ 0 & 2\end{bmatrix} = \begin{bmatrix}0 & -2\\ 2 & 0\end{bmatrix} $$</div>
+        <p>This matrix scales by 2 <em>and</em> rotates by 90°, in one step.</p>
+      </div>
+
+      <h3>Identity and inverse</h3>
+      <p>The identity matrix does nothing:</p>
+      <div class="math-display">$$ I \;=\; \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}, \qquad I\,\mathbf{v} = \mathbf{v}, \qquad I M = M I = M $$</div>
+      <p>The <em>inverse</em> \(M^{-1}\), when it exists, undoes \(M\):</p>
+      <div class="math-display">$$ M\,M^{-1} \;=\; M^{-1} M \;=\; I $$</div>
+      <p>Multiplying both sides of \(M\mathbf{x} = \mathbf{y}\) by \(M^{-1}\) gives \(\mathbf{x} = M^{-1}\mathbf{y}\). That is how we &ldquo;solve&rdquo; matrix equations. We need this in Chapters 11 and 13.</p>
+      <p>An inverse exists only when \(\det(M) \neq 0\) — in plain words, when the transformation does not collapse area to zero.</p>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 9 ============== -->
+    <section id="ch9">
+      <h2 class="chapter"><span class="num">Chapter 9</span>Distance between points</h2>
+      <p class="lead">The bridge from algebra to radial basis functions.</p>
+
+      <p>Given two points \(\mathbf{x}\) and \(\mathbf{c}\) (in 2D, 3D, or any dimension), the displacement is the vector \(\mathbf{x} - \mathbf{c}\). Its length is the straight-line distance between them:</p>
+      <div class="math-display">$$ r \;=\; \|\mathbf{x} - \mathbf{c}\| \;=\; \sqrt{(x_1 - c_1)^2 + (x_2 - c_2)^2 + \dots} $$</div>
+
+      <p>This is the same Pythagorean formula from Chapter 2, just written with the difference of two points instead of one vector.</p>
+
+      <h3>Level sets</h3>
+      <p>Now fix a center \(\mathbf{c}\) and treat \(r\) as a function of \(\mathbf{x}\). The set of points at the same distance \(r\) from \(\mathbf{c}\) forms a circle in 2D (a sphere in 3D). These are called <em>level sets</em>.</p>
+
+      <figure id="fig-distance-rings"><svg class="diagram" viewBox="0 0 460 360"></svg>
+        <figcaption><span class="figlabel">Figure 9.1.</span> Concentric circles around a center \(\mathbf{c}\). Every point on a circle has the same distance \(r\) to \(\mathbf{c}\).</figcaption>
+      </figure>
+
+      <p>The level sets are circles because the distance function only depends on \(r\), not on direction. This is what people mean when they say a function is <em>radial</em>.</p>
+
+      <div class="key"><strong>Key idea</strong>
+        Distance from a fixed center is a single number that depends only on how far away you are, not on which way you face. That radial structure is the entry point for the next chapter.</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 10 ============== -->
+    <section id="ch10">
+      <h2 class="chapter"><span class="num">Chapter 10</span>Interpolation</h2>
+      <p class="lead">Given a few data points, find a curve that passes through every one. Two natural attempts and one big problem.</p>
+
+      <p>Suppose you have \(n+1\) data points</p>
+      <div class="math-display">$$ (x_0, y_0),\;(x_1, y_1),\;\ldots,\;(x_n, y_n) $$</div>
+      <p>sorted so that \(x_0 < x_1 < \dots < x_n\). You want a function \(f(x)\) with \(f(x_i) = y_i\) for every \(i\). This is the <em>interpolation</em> problem in 1D.</p>
+
+      <h3>Linear interpolation</h3>
+      <p>The simplest answer: connect each pair of neighbouring points with a straight line. On the interval \([x_i, x_{i+1}]\) the formula is</p>
+      <div class="math-display">$$ f(x) \;=\; y_i + (y_{i+1} - y_i)\,\frac{x - x_i}{x_{i+1} - x_i} $$</div>
+      <p>This is fast and robust. But the curve has a corner at every data point — it is continuous but not smooth.</p>
+
+      <figure id="fig-linear-interp"><svg class="diagram" viewBox="0 0 540 280"></svg>
+        <figcaption><span class="figlabel">Figure 10.1.</span> Linear interpolation through six points. The curve is continuous but has corners at every data point.</figcaption>
+      </figure>
+
+      <h3>Polynomial interpolation</h3>
+      <p>A second answer: fit one polynomial of degree \(n\) through all \(n+1\) points. There is exactly one such polynomial, and you can write it down using the <em>Lagrange formula</em>:</p>
+      <div class="math-display">$$ p(x) \;=\; \sum_{i=0}^{n} y_i \prod_{j\neq i} \frac{x - x_j}{x_i - x_j} $$</div>
+      <p>For a few points this gives a smooth curve. For <em>many</em> points it falls apart.</p>
+
+      <p>Force a single polynomial through 11 evenly spaced samples of a smooth function and the polynomial oscillates wildly near the endpoints — its swings get bigger than the data itself. This is the <strong>Runge phenomenon</strong>, named after the function \(f(x) = 1 / (1 + 25 x^2)\) on which it shows up dramatically.</p>
+
+      <figure id="fig-runge"><svg class="diagram" viewBox="0 0 700 320"></svg>
+        <figcaption><span class="figlabel">Figure 10.2.</span> The same 11 sample points (black) of \(f(x) = 1/(1+25x^2)\) (gray dashed). Left: the unique degree-10 polynomial through them oscillates wildly near \(\pm 1\). Right: a natural cubic spline stays close to the true function everywhere.</figcaption>
+      </figure>
+
+      <div class="key"><strong>Key idea</strong>
+        Single high-degree polynomials are unstable. Connecting points with straight lines is too rough. The fix: use many low-degree polynomials, glued together smoothly. That is the spline idea.</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 11 ============== -->
+    <section id="ch11">
+      <h2 class="chapter"><span class="num">Chapter 11</span>Cubic splines</h2>
+      <p class="lead">A different cubic on each interval, joined at the data points so that values, slopes, and curvatures all agree. The conditions reduce to a tridiagonal linear system.</p>
+
+      <h3>Setup</h3>
+      <p>Same data points: \((x_0, y_0), \ldots, (x_n, y_n)\). On each interval \([x_i, x_{i+1}]\) we use a cubic polynomial \(S_i(x)\). That is \(n\) cubics, each with 4 coefficients, so \(4n\) unknowns in total.</p>
+
+      <h3>Conditions</h3>
+      <p>To pin all \(4n\) unknowns we impose:</p>
+      <ul>
+        <li><strong>Interpolation.</strong> Each cubic hits the right values at the two ends of its interval: \(S_i(x_i) = y_i\) and \(S_i(x_{i+1}) = y_{i+1}\). That is \(2n\) equations.</li>
+        <li><strong>Slope continuity.</strong> At each interior knot \(x_i\) (\(i = 1, \ldots, n-1\)), the cubic on the left and the cubic on the right have the same first derivative: \(S_{i-1}'(x_i) = S_i'(x_i)\). That is \(n-1\) equations.</li>
+        <li><strong>Curvature continuity.</strong> Same for second derivatives: \(S_{i-1}''(x_i) = S_i''(x_i)\). Another \(n-1\) equations.</li>
+      </ul>
+
+      <p>Total so far: \(2n + 2(n-1) = 4n - 2\) equations. Two more are needed. The most common choice is the <strong>natural spline</strong>:</p>
+      <div class="math-display">$$ S''(x_0) = 0, \qquad S''(x_n) = 0 $$</div>
+      <p>The curve straightens out at the endpoints. (Other choices: <em>clamped</em> fixes the slopes at the ends; <em>periodic</em> matches both sides for closed curves.)</p>
+
+      <h3>Reducing to a tridiagonal system</h3>
+      <p>Trying to solve for all \(4n\) coefficients directly is messy. The standard trick: introduce</p>
+      <div class="math-display">$$ M_i \;=\; S''(x_i), \qquad i = 0, 1, \ldots, n $$</div>
+      <p>the second derivative at each data point. After some algebra (write each cubic in terms of \(M_i\) and \(M_{i+1}\), then enforce slope continuity at the interior knots) the conditions reduce to a linear system in just the \(M_i\). For equally spaced data with \(h = x_{i+1} - x_i\),</p>
+      <div class="math-display">$$ M_{i-1} \,+\, 4\,M_i \,+\, M_{i+1} \;=\; \frac{6}{h^2}\,(y_{i+1} - 2 y_i + y_{i-1}), \qquad i = 1, \ldots, n-1 $$</div>
+
+      <p>Each equation links three neighbouring \(M\)'s, no further. With natural boundary conditions \(M_0 = M_n = 0\), the unknowns are \(M_1, \ldots, M_{n-1}\), and the matrix has only three non-zero diagonals — it is <em>tridiagonal</em>:</p>
+      <div class="math-display">$$ \begin{bmatrix} 4 & 1 & & & \\ 1 & 4 & 1 & & \\ & 1 & 4 & \ddots & \\ & & \ddots & \ddots & 1 \\ & & & 1 & 4 \end{bmatrix}\begin{bmatrix} M_1 \\ M_2 \\ \vdots \\ M_{n-1} \end{bmatrix} \;=\; \frac{6}{h^2}\begin{bmatrix} y_2 - 2 y_1 + y_0 \\ y_3 - 2 y_2 + y_1 \\ \vdots \\ y_n - 2 y_{n-1} + y_{n-2} \end{bmatrix} $$</div>
+
+      <p>Tridiagonal systems are solved by the <strong>Thomas algorithm</strong> — a one-sweep version of Gaussian elimination that takes only \(O(n)\) time. Once you have all \(M_i\), the cubic on each interval is</p>
+      <div class="math-display">$$ S_i(x) = \tfrac{M_i}{6h}(x_{i+1}-x)^3 + \tfrac{M_{i+1}}{6h}(x-x_i)^3 + \!\left(\tfrac{y_i}{h} - \tfrac{M_i h}{6}\right)\!(x_{i+1}-x) + \!\left(\tfrac{y_{i+1}}{h} - \tfrac{M_{i+1} h}{6}\right)\!(x-x_i) $$</div>
+
+      <h3>Worked example: 4 points</h3>
+      <p>Take the data \((0,0), (1,1), (2,0), (3,1)\). Spacing \(h = 1\). Natural spline: \(M_0 = M_3 = 0\), and we solve for \(M_1, M_2\).</p>
+      <p>The right-hand sides:</p>
+      <div class="math-display">$$
+        \frac{6}{1^2}\,(y_2 - 2 y_1 + y_0) = 6\,(0 - 2 + 0) = -12, \qquad
+        \frac{6}{1^2}\,(y_3 - 2 y_2 + y_1) = 6\,(1 - 0 + 1) = 12
+      $$</div>
+      <p>So the 2&times;2 system is</p>
+      <div class="math-display">$$ \begin{bmatrix} 4 & 1 \\ 1 & 4 \end{bmatrix}\begin{bmatrix} M_1 \\ M_2 \end{bmatrix} = \begin{bmatrix} -12 \\ 12 \end{bmatrix} $$</div>
+      <p>From row 1: \(M_2 = -12 - 4 M_1\). Substitute into row 2: \(M_1 + 4(-12 - 4 M_1) = 12 \Rightarrow -15 M_1 = 60 \Rightarrow M_1 = -4\). Then \(M_2 = -12 - 4(-4) = 4\).</p>
+      <p>So \(M = (0, -4, 4, 0)\). The three cubics are now fully determined. Plug into the formula above to get, for example, on the first interval \([0, 1]\):</p>
+      <div class="math-display">$$ S_0(x) \;=\; -\tfrac{2}{3} x^3 + \tfrac{5}{3} x $$</div>
+      <p>You can check directly: \(S_0(0) = 0\), \(S_0(1) = 1\), \(S_0''(0) = 0\), \(S_0''(1) = -4\). All conditions satisfied. The full spline curve:</p>
+
+      <figure id="fig-spline-example"><svg class="diagram" viewBox="0 0 540 280"></svg>
+        <figcaption><span class="figlabel">Figure 11.1.</span> The natural cubic spline through \((0,0), (1,1), (2,0), (3,1)\). Three cubics, joined smoothly at the interior knots, with zero curvature at both ends.</figcaption>
+      </figure>
+
+      <div class="key"><strong>The matrix payoff</strong>
+        Splines reduce a continuous-curve problem to \(A\,\mathbf{w} = \mathbf{y}\), exactly the kind of system Chapter 8 introduced. For splines, \(A\) has only three non-zero diagonals, so the system is fast to solve. In the next chapters, RBF interpolation will follow the same pattern in higher dimensions, but with a dense \(A\) whose entries are kernel values.</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 12 ============== -->
+    <section id="ch12">
+      <h2 class="chapter"><span class="num">Chapter 12</span>Radial basis functions</h2>
+      <p class="lead">Apply any function to the distance \(r\). You get a function whose value depends only on how far you are from a center.</p>
+
+      <p>A <em>radial basis function</em> (RBF) is a function \(\phi(r)\) of the single variable \(r\). Given a center \(\mathbf{c}\), the &ldquo;basis function centered at \(\mathbf{c}\)&rdquo; is</p>
+      <div class="math-display">$$ \phi\big(\|\mathbf{x} - \mathbf{c}\|\big) $$</div>
+      <p>Two points equally far from \(\mathbf{c}\) get the same value, no matter where they are around \(\mathbf{c}\). That is what &ldquo;radial&rdquo; means.</p>
+
+      <h3>The four classics</h3>
+      <p>These are the kernels you will see most often. \(\varepsilon\) is a shape parameter (called the <em>shape</em> or <em>scale</em>): bigger \(\varepsilon\) means narrower bumps.</p>
+
+      <div class="math-display">$$
+        \begin{aligned}
+          \text{Gaussian:} && \phi(r) &= e^{-(\varepsilon r)^2} \\
+          \text{Multiquadric:} && \phi(r) &= \sqrt{1 + (\varepsilon r)^2} \\
+          \text{Inverse multiquadric:} && \phi(r) &= \frac{1}{\sqrt{1 + (\varepsilon r)^2}} \\
+          \text{Thin-plate spline:} && \phi(r) &= r^2 \log r \quad (\phi(0)=0)
+        \end{aligned}
+      $$</div>
+
+      <figure id="fig-kernels"><svg class="diagram" viewBox="0 0 600 320"></svg>
+        <figcaption><span class="figlabel">Figure 12.1.</span> The four classic RBF kernels as functions of \(r\), with \(\varepsilon = 1\). Gaussian and inverse multiquadric decay; multiquadric and thin-plate grow.</figcaption>
+      </figure>
+
+      <h3>What a 2D radial bump looks like</h3>
+      <p>Take the Gaussian. Centered at \(\mathbf{c} = (0, 0)\), the value at any point \(\mathbf{x} = (x, y)\) is</p>
+      <div class="math-display">$$ \phi\big(\|\mathbf{x}\|\big) \;=\; e^{-\varepsilon^2(x^2 + y^2)} $$</div>
+      <p>This is a smooth bump, tallest at the center, decaying outward. The level sets are circles — the same circles from Chapter 9.</p>
+
+      <figure id="fig-bump-2d"><svg class="diagram" viewBox="0 0 460 360"></svg>
+        <figcaption><span class="figlabel">Figure 12.2.</span> A 2D Gaussian RBF centered at the origin (\(\varepsilon = 1\)). The shading represents \(\phi\big(\|\mathbf{x}\|\big)\): bright near the center, dim far away.</figcaption>
+      </figure>
+
+      <div class="key"><strong>Local versus global</strong>
+        Gaussian and inverse multiquadric are <em>local</em>: they decay to zero as \(r\) grows. Multiquadric and thin-plate are <em>global</em>: they keep growing. Both kinds are useful for different jobs.</div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 13 ============== -->
+    <section id="ch13">
+      <h2 class="chapter"><span class="num">Chapter 13</span>RBF interpolation</h2>
+      <p class="lead">Place several bumps, each at a known data point. Choose their weights so that the sum passes exactly through every point. This is where vectors, distances, and matrices all meet.</p>
+
+      <h3>Setup</h3>
+      <p>Suppose you have \(n\) data points</p>
+      <div class="math-display">$$ (\mathbf{x}_1, y_1),\; (\mathbf{x}_2, y_2),\; \ldots,\; (\mathbf{x}_n, y_n) $$</div>
+      <p>where each \(\mathbf{x}_i\) is a position (in 1D, 2D, 3D — pick your dimension) and each \(y_i\) is a value at that position (a height, a temperature, a density). You want a smooth function \(f(\mathbf{x})\) that equals \(y_i\) at every \(\mathbf{x}_i\).</p>
+
+      <h3>The RBF idea</h3>
+      <p>Build \(f\) as a sum of \(n\) bumps, one centered at each data point, each with its own weight \(w_i\):</p>
+      <div class="math-display">$$ f(\mathbf{x}) \;=\; \sum_{i=1}^{n} w_i\,\phi\!\big(\|\mathbf{x} - \mathbf{x}_i\|\big) $$</div>
+
+      <h3>The matrix system</h3>
+      <p>To find the weights, demand that \(f(\mathbf{x}_j) = y_j\) at every data point. That is one equation per \(j\):</p>
+      <div class="math-display">$$ \sum_{i=1}^{n} w_i\,\phi\!\big(\|\mathbf{x}_j - \mathbf{x}_i\|\big) \;=\; y_j \qquad (j = 1, 2, \dots, n) $$</div>
+
+      <p>That is exactly an <em>n &times; n linear system</em> in the unknowns \(w_1, \ldots, w_n\). Stack the equations in matrix form:</p>
+      <div class="math-display">$$ A\,\mathbf{w} \;=\; \mathbf{y}, \qquad A_{ij} \;=\; \phi\!\big(\|\mathbf{x}_i - \mathbf{x}_j\|\big) $$</div>
+
+      <p>Each entry of \(A\) is the kernel evaluated at the distance between two data points. The diagonal entries are \(\phi(0)\), because every point is at distance zero from itself.</p>
+
+      <p>Now use Chapter 8: solve for \(\mathbf{w}\) by multiplying both sides by \(A^{-1}\):</p>
+      <div class="math-display">$$ \mathbf{w} \;=\; A^{-1}\mathbf{y} $$</div>
+
+      <p>Once you have \(\mathbf{w}\), the function \(f(\mathbf{x})\) is fully defined — you can evaluate it anywhere.</p>
+
+      <div class="key"><strong>Why this works</strong>
+        \(n\) unknowns, \(n\) equations. The matrix \(A\) is symmetric (because distance is symmetric: \(\|\mathbf{x}_i - \mathbf{x}_j\| = \|\mathbf{x}_j - \mathbf{x}_i\|\)) and, for the Gaussian and IMQ, invertible. The interpolant exists and is unique.</div>
+
+      <h3>Worked example: 3 points in 1D, Gaussian kernel</h3>
+      <p>Take the data points \((0, 1)\), \((1, 0)\), \((2, 1)\). Use the Gaussian kernel with \(\varepsilon = 1\). So \(\phi(r) = e^{-r^2}\). The pairwise distances:</p>
+      <div class="math-display">$$
+        \begin{array}{c|ccc}
+          & x_1=0 & x_2=1 & x_3=2 \\ \hline
+          x_1=0 & 0 & 1 & 2 \\
+          x_2=1 & 1 & 0 & 1 \\
+          x_3=2 & 2 & 1 & 0 \\
+        \end{array}
+      $$</div>
+
+      <p>Apply \(\phi(r) = e^{-r^2}\) to each entry to build \(A\):</p>
+      <div class="math-display">$$
+        A \;=\; \begin{bmatrix}
+          e^0 & e^{-1} & e^{-4} \\
+          e^{-1} & e^0 & e^{-1} \\
+          e^{-4} & e^{-1} & e^0
+        \end{bmatrix}
+        \;\approx\;
+        \begin{bmatrix}
+          1.000 & 0.368 & 0.018 \\
+          0.368 & 1.000 & 0.368 \\
+          0.018 & 0.368 & 1.000
+        \end{bmatrix}
+      $$</div>
+
+      <p>And \(\mathbf{y} = (1, 0, 1)\). Solve \(A\mathbf{w} = \mathbf{y}\). By symmetry of the data, \(w_1 = w_3\). Setting \(w_1 = w_3 = a\) and \(w_2 = b\) and solving the small system gives</p>
+      <div class="math-display">$$ \mathbf{w} \;\approx\; (1.338,\; -0.984,\; 1.338) $$</div>
+
+      <p>Therefore</p>
+      <div class="math-display">$$ f(x) \;=\; 1.338\,e^{-x^2} \;-\; 0.984\,e^{-(x-1)^2} \;+\; 1.338\,e^{-(x-2)^2} $$</div>
+
+      <p>Check at the data points:</p>
+      <ul>
+        <li>\(f(0) \approx 1.338 - 0.984\cdot e^{-1} + 1.338\cdot e^{-4} \approx 1.338 - 0.362 + 0.024 = 1.000\) ✓</li>
+        <li>\(f(1) \approx 1.338\cdot e^{-1} - 0.984 + 1.338\cdot e^{-1} \approx 0.984 - 0.984 = 0\) ✓</li>
+        <li>\(f(2) \approx 1.000\) by symmetry ✓</li>
+      </ul>
+
+      <p>The next figure plots the three individual bumps (each \(w_i\,\phi(\|x - x_i\|)\)) and the resulting curve, which passes exactly through all three data points.</p>
+
+      <figure id="fig-rbf-bumps"><svg class="diagram" viewBox="0 0 600 280"></svg>
+        <figcaption><span class="figlabel">Figure 13.1.</span> Three weighted Gaussian bumps (light), one centered at each data point. Their sum (the dark curve) passes through every black dot exactly.</figcaption>
+      </figure>
+
+      <h3>What you have learned</h3>
+      <p>An RBF interpolant is built from three ingredients you now know:</p>
+      <ul>
+        <li>Vectors and distance — the argument of \(\phi\).</li>
+        <li>A function \(\phi\) of distance — the &ldquo;radial&rdquo; piece.</li>
+        <li>A linear system \(A\mathbf{w} = \mathbf{y}\) — the matrix piece, solved by inversion.</li>
+      </ul>
+
+      <p>That is the whole idea. Nothing more is needed to write down an RBF interpolant in any number of dimensions. The same method underlies smooth scattered-data interpolation in graphics, geostatistics (where it is called <em>kriging</em>), neural networks (RBF networks), and meshless methods for solving differential equations.</p>
+    </section>
+
+    <footer>
+      <p>End of guide. You have gone from \(|a-b|\) on a line to fitting a smooth surface through scattered points using a linear system whose entries are functions of vector distances.</p>
+    </footer>
+  </article>
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+<script>
+/* ===========================================================
+   Static figure renderer.
+   No interactivity — the SVG content is generated once at load.
+   =========================================================== */
+
+const C = {
+  axis: '#9ca3af',
+  axisStrong: '#6b7280',
+  grid: '#e5e7eb',
+  gridSoft: '#f3f4f6',
+  ink: '#1f2937',
+  inkSoft: '#4b5563',
+  paper: '#ffffff',
+  bg: '#fbfaf6',
+  a: '#1d4ed8',  // blue
+  b: '#c2410c',  // orange
+  sum: '#15803d', // green
+  cross: '#6d28d9', // purple
+  highlight: '#fef3c7'
+};
+
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+function svgEl(tag, attrs = {}) {
+  const el = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+function appendAll(parent, ...els) { els.forEach(e => parent.appendChild(e)); return parent; }
+
+function ensureDefs(svg) {
+  let defs = svg.querySelector('defs');
+  if (!defs) {
+    defs = svgEl('defs');
+    svg.insertBefore(defs, svg.firstChild);
+  }
+  // arrow markers
+  const colors = { a: C.a, b: C.b, sum: C.sum, cross: C.cross, axis: C.axisStrong, ink: C.ink };
+  for (const [name, col] of Object.entries(colors)) {
+    if (defs.querySelector('#arr-' + name)) continue;
+    const m = svgEl('marker', {
+      id: 'arr-' + name, viewBox: '0 0 10 10', refX: 8, refY: 5,
+      markerUnits: 'strokeWidth', markerWidth: 5, markerHeight: 5, orient: 'auto-start-reverse'
+    });
+    const p = svgEl('path', { d: 'M0,0 L10,5 L0,10 z', fill: col });
+    m.appendChild(p);
+    defs.appendChild(m);
+  }
+}
+
+function arrow(svg, x1, y1, x2, y2, color, opts = {}) {
+  ensureDefs(svg);
+  const which = opts.which || 'a';
+  const stroke = color || C.a;
+  const ln = svgEl('line', {
+    x1, y1, x2, y2, stroke, 'stroke-width': opts.width || 2.4,
+    'stroke-linecap': 'round',
+    'marker-end': 'url(#arr-' + which + ')'
+  });
+  if (opts.dash) ln.setAttribute('stroke-dasharray', opts.dash);
+  svg.appendChild(ln);
+  return ln;
+}
+
+function line(svg, x1, y1, x2, y2, attrs = {}) {
+  return appendAll(svg, svgEl('line', { x1, y1, x2, y2, stroke: C.axis, 'stroke-width': 1, ...attrs })).lastChild;
+}
+function circle(svg, cx, cy, r, attrs = {}) {
+  return appendAll(svg, svgEl('circle', { cx, cy, r, fill: C.ink, ...attrs })).lastChild;
+}
+function text(svg, x, y, str, attrs = {}) {
+  const t = svgEl('text', {
+    x, y, fill: C.inkSoft, 'font-family': 'ui-sans-serif, system-ui, sans-serif',
+    'font-size': 12, 'text-anchor': 'middle', 'dominant-baseline': 'middle', ...attrs
+  });
+  t.textContent = str;
+  svg.appendChild(t);
+  return t;
+}
+function path(svg, d, attrs = {}) {
+  return appendAll(svg, svgEl('path', { d, stroke: C.ink, fill: 'none', 'stroke-width': 1.5, ...attrs })).lastChild;
+}
+function rect(svg, x, y, w, h, attrs = {}) {
+  return appendAll(svg, svgEl('rect', { x, y, width: w, height: h, fill: C.paper, ...attrs })).lastChild;
+}
+
+/* Build a coordinate frame inside an SVG.
+   Returns {toPx, drawAxes} where toPx(ux, uy) -> [px, py]. */
+function frame2D(svg, opts) {
+  const { x0, y0, w, h, unitsX = 5, unitsY = 5, gridStep = 1, showAxes = true,
+          xMin = -unitsX, xMax = unitsX, yMin = -unitsY, yMax = unitsY,
+          drawTickLabels = true } = opts;
+  const sx = w / (xMax - xMin), sy = h / (yMax - yMin);
+  const toPx = (ux, uy) => [x0 + (ux - xMin) * sx, y0 + h - (uy - yMin) * sy];
+
+  // background
+  rect(svg, x0, y0, w, h, { fill: C.paper, stroke: C.grid });
+
+  // grid
+  for (let gx = Math.ceil(xMin); gx <= xMax; gx += gridStep) {
+    const [px,] = toPx(gx, 0);
+    line(svg, px, y0, px, y0 + h, { stroke: C.grid });
+  }
+  for (let gy = Math.ceil(yMin); gy <= yMax; gy += gridStep) {
+    const [, py] = toPx(0, gy);
+    line(svg, x0, py, x0 + w, py, { stroke: C.grid });
+  }
+
+  if (showAxes) {
+    const [ax0, ay0] = toPx(xMin, 0), [ax1,] = toPx(xMax, 0);
+    line(svg, ax0, ay0, ax1, ay0, { stroke: C.axisStrong, 'stroke-width': 1.4 });
+    const [, by0] = toPx(0, yMin); const [bx0,] = toPx(0, yMin); const [, by1] = toPx(0, yMax);
+    line(svg, bx0, by0, bx0, by1, { stroke: C.axisStrong, 'stroke-width': 1.4 });
+
+    if (drawTickLabels) {
+      for (let gx = Math.ceil(xMin); gx <= xMax; gx++) {
+        if (gx === 0) continue;
+        const [px, py] = toPx(gx, 0);
+        text(svg, px, py + 12, String(gx), { 'font-size': 10, fill: C.inkSoft });
+      }
+      for (let gy = Math.ceil(yMin); gy <= yMax; gy++) {
+        if (gy === 0) continue;
+        const [px, py] = toPx(0, gy);
+        text(svg, px - 10, py, String(gy), { 'font-size': 10, fill: C.inkSoft, 'text-anchor': 'end' });
+      }
+    }
+  }
+  return { toPx, sx, sy };
+}
+
+/* ---------- Figure 1.1: Number line ---------- */
+function drawFig_NumberLine() {
+  const svg = document.querySelector('#fig-numberline svg');
+  const W = 520, H = 120;
+  const margin = 30, cy = H/2;
+  const xMin = -7, xMax = 7;
+  const toPx = u => margin + (u - xMin)/(xMax - xMin) * (W - 2*margin);
+
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  // baseline
+  line(svg, margin, cy, W - margin, cy, { stroke: C.axisStrong, 'stroke-width': 1.4 });
+
+  // ticks
+  for (let u = xMin; u <= xMax; u++) {
+    const px = toPx(u);
+    line(svg, px, cy - 5, px, cy + 5, { stroke: C.axisStrong, 'stroke-width': 1 });
+    text(svg, px, cy + 18, String(u), { 'font-size': 11, fill: C.inkSoft });
+  }
+
+  // segment between -2 and 3
+  const ax = toPx(-2), bx = toPx(3);
+  line(svg, ax, cy - 22, bx, cy - 22, { stroke: C.sum, 'stroke-width': 2.5, 'stroke-dasharray': '5 4' });
+  // brace label
+  text(svg, (ax + bx)/2, cy - 32, 'distance = 5', { 'font-size': 12, fill: C.sum, 'font-weight': 600 });
+
+  // points
+  circle(svg, ax, cy, 6, { fill: C.a });
+  circle(svg, bx, cy, 6, { fill: C.b });
+  text(svg, ax, cy - 14, 'a = −2', { 'font-size': 12, fill: C.a, 'font-weight': 600 });
+  text(svg, bx, cy - 14, 'b = 3',  { 'font-size': 12, fill: C.b, 'font-weight': 600 });
+}
+
+/* ---------- Figure 2.1: 2D vector ---------- */
+function drawFig_Vector2D() {
+  const svg = document.querySelector('#fig-vector-2d svg');
+  const W = 520, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+  const { toPx } = frame2D(svg, { x0: 30, y0: 20, w: W - 60, h: H - 60, xMin: -1, xMax: 6, yMin: -1, yMax: 6 });
+
+  const [ox, oy] = toPx(0, 0);
+  const [tx, ty] = toPx(3, 4);
+
+  // dashed projections to axes
+  line(svg, tx, ty, tx, oy, { stroke: C.inkSoft, 'stroke-dasharray': '4 4' });
+  line(svg, tx, ty, ox, ty, { stroke: C.inkSoft, 'stroke-dasharray': '4 4' });
+
+  // labels for components
+  text(svg, (ox + tx)/2, oy - 8, '3 (x)', { 'font-size': 12, fill: C.inkSoft });
+  text(svg, tx + 16, (oy + ty)/2, '4 (y)', { 'font-size': 12, fill: C.inkSoft, 'text-anchor': 'start' });
+
+  // length label along arrow
+  const midx = (ox + tx)/2, midy = (oy + ty)/2;
+  text(svg, midx - 26, midy - 8, '‖v‖ = 5', { 'font-size': 13, fill: C.a, 'font-weight': 600 });
+
+  // vector arrow
+  arrow(svg, ox, oy, tx, ty, C.a, { width: 2.6 });
+  circle(svg, tx, ty, 4, { fill: C.a, stroke: C.paper, 'stroke-width': 1.5 });
+  text(svg, tx + 12, ty - 12, '(3, 4)', { 'font-size': 12, fill: C.a, 'text-anchor': 'start', 'font-weight': 600 });
+
+  // origin label
+  text(svg, ox - 10, oy + 12, 'O', { 'font-size': 11, fill: C.inkSoft });
+}
+
+/* ---------- Figure 3.1: vector addition (two views) ---------- */
+function drawFig_VectorAdd() {
+  const svg = document.querySelector('#fig-vector-add svg');
+  const W = 700, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const f1 = frame2D(svg, { x0: 20, y0: 30, w: 320, h: 300, xMin: -1, xMax: 5, yMin: -1, yMax: 5 });
+  const f2 = frame2D(svg, { x0: 360, y0: 30, w: 320, h: 300, xMin: -1, xMax: 5, yMin: -1, yMax: 5 });
+
+  // Tip-to-tail (left)
+  text(svg, 180, 22, 'tip-to-tail', { 'font-size': 13, fill: C.ink, 'font-weight': 600 });
+  {
+    const [ox, oy] = f1.toPx(0, 0);
+    const [ax, ay] = f1.toPx(3, 1);
+    const [bx, by] = f1.toPx(1, 2.5);
+    // a from origin
+    arrow(svg, ox, oy, ax, ay, C.a, { which: 'a' });
+    // b starting at a's tip, going by (1, 2.5)
+    const [b2x, b2y] = f1.toPx(3 + 1, 1 + 2.5);
+    arrow(svg, ax, ay, b2x, b2y, C.b, { which: 'b' });
+    // sum
+    arrow(svg, ox, oy, b2x, b2y, C.sum, { which: 'sum', width: 2.6 });
+    // labels
+    text(svg, (ox + ax)/2, ay + 14, 'a', { 'font-size': 13, fill: C.a, 'font-weight': 600 });
+    text(svg, (ax + b2x)/2 + 14, (ay + b2y)/2 - 6, 'b', { 'font-size': 13, fill: C.b, 'font-weight': 600 });
+    text(svg, (ox + b2x)/2 - 24, (oy + b2y)/2 - 8, 'a + b', { 'font-size': 13, fill: C.sum, 'font-weight': 600 });
+  }
+
+  // Parallelogram (right)
+  text(svg, 520, 22, 'parallelogram', { 'font-size': 13, fill: C.ink, 'font-weight': 600 });
+  {
+    const [ox, oy] = f2.toPx(0, 0);
+    const [ax, ay] = f2.toPx(3, 1);
+    const [bx, by] = f2.toPx(1, 2.5);
+    const [sx, sy] = f2.toPx(4, 3.5);
+    // dashed completion lines
+    line(svg, ax, ay, sx, sy, { stroke: C.inkSoft, 'stroke-dasharray': '5 5' });
+    line(svg, bx, by, sx, sy, { stroke: C.inkSoft, 'stroke-dasharray': '5 5' });
+    // light fill
+    appendAll(svg, svgEl('polygon', {
+      points: `${ox},${oy} ${ax},${ay} ${sx},${sy} ${bx},${by}`,
+      fill: 'rgba(21, 128, 61, 0.07)', stroke: 'none'
+    }));
+    arrow(svg, ox, oy, ax, ay, C.a, { which: 'a' });
+    arrow(svg, ox, oy, bx, by, C.b, { which: 'b' });
+    arrow(svg, ox, oy, sx, sy, C.sum, { which: 'sum', width: 2.6 });
+    text(svg, (ox + ax)/2, ay + 14, 'a', { 'font-size': 13, fill: C.a, 'font-weight': 600 });
+    text(svg, bx - 14, (oy + by)/2, 'b', { 'font-size': 13, fill: C.b, 'font-weight': 600, 'text-anchor': 'end' });
+    text(svg, (ox + sx)/2 - 22, (oy + sy)/2 - 8, 'a + b', { 'font-size': 13, fill: C.sum, 'font-weight': 600 });
+  }
+}
+
+/* ---------- Figure 3.2: vector subtraction ---------- */
+function drawFig_VectorSub() {
+  const svg = document.querySelector('#fig-vector-sub svg');
+  const W = 520, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+  const f = frame2D(svg, { x0: 30, y0: 30, w: W - 60, h: H - 60, xMin: -1, xMax: 6, yMin: -1, yMax: 5 });
+
+  const [ox, oy] = f.toPx(0, 0);
+  const [ax, ay] = f.toPx(4, 1);
+  const [bx, by] = f.toPx(1, 3);
+
+  arrow(svg, ox, oy, ax, ay, C.a, { which: 'a' });
+  arrow(svg, ox, oy, bx, by, C.b, { which: 'b' });
+  // a - b: from tip of b to tip of a
+  arrow(svg, bx, by, ax, ay, C.sum, { which: 'sum', width: 2.6 });
+
+  text(svg, (ox + ax)/2, ay + 14, 'a', { 'font-size': 13, fill: C.a, 'font-weight': 600 });
+  text(svg, bx - 14, (oy + by)/2, 'b', { 'font-size': 13, fill: C.b, 'font-weight': 600, 'text-anchor': 'end' });
+  text(svg, (bx + ax)/2 + 24, (by + ay)/2 - 6, 'a − b', { 'font-size': 13, fill: C.sum, 'font-weight': 600 });
+  text(svg, ax + 24, ay - 4, 'tip of a', { 'font-size': 11, fill: C.inkSoft });
+  text(svg, bx + 24, by - 4, 'tip of b', { 'font-size': 11, fill: C.inkSoft });
+}
+
+/* ---------- Figure 4.1: 3D vector (isometric) ---------- */
+function drawFig_Vector3D() {
+  const svg = document.querySelector('#fig-vector-3d svg');
+  const W = 520, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  // simple isometric projection: (x, y, z) -> (cx + x*cos(30°) - y*cos(30°), cy - x*sin(30°) - y*sin(30°) - z)
+  const cx = 160, cy = 280, scale = 40;
+  const cos30 = Math.cos(Math.PI/6), sin30 = Math.sin(Math.PI/6);
+  const proj = (x, y, z) => [cx + (x - y) * cos30 * scale, cy - ((x + y) * sin30 + z) * scale];
+
+  // grid on xy plane
+  for (let i = 0; i <= 5; i++) {
+    const [a, b] = proj(i, 0, 0);
+    const [c, d] = proj(i, 5, 0);
+    line(svg, a, b, c, d, { stroke: C.grid });
+    const [a2, b2] = proj(0, i, 0);
+    const [c2, d2] = proj(5, i, 0);
+    line(svg, a2, b2, c2, d2, { stroke: C.grid });
+  }
+
+  // axes
+  const [ox, oy] = proj(0,0,0);
+  const [xx, xy] = proj(5, 0, 0);
+  const [yx, yy] = proj(0, 5, 0);
+  const [zx, zy] = proj(0, 0, 4);
+  arrow(svg, ox, oy, xx, xy, C.axisStrong, { which: 'axis', width: 1.4 });
+  arrow(svg, ox, oy, yx, yy, C.axisStrong, { which: 'axis', width: 1.4 });
+  arrow(svg, ox, oy, zx, zy, C.axisStrong, { which: 'axis', width: 1.4 });
+  text(svg, xx + 10, xy + 6, 'x', { 'font-size': 13, fill: C.inkSoft, 'font-weight': 600 });
+  text(svg, yx - 14, yy + 6, 'y', { 'font-size': 13, fill: C.inkSoft, 'font-weight': 600 });
+  text(svg, zx, zy - 10, 'z', { 'font-size': 13, fill: C.inkSoft, 'font-weight': 600 });
+
+  // vector v = (3, 2, 2)
+  const [vx, vy] = proj(3, 2, 2);
+  // dashed: drop from tip to xy plane
+  const [fx, fy] = proj(3, 2, 0);
+  line(svg, vx, vy, fx, fy, { stroke: C.inkSoft, 'stroke-dasharray': '4 4' });
+  // dashed: from origin to xy-projection
+  line(svg, ox, oy, fx, fy, { stroke: C.inkSoft, 'stroke-dasharray': '4 4' });
+  // arrow
+  arrow(svg, ox, oy, vx, vy, C.a, { which: 'a', width: 2.6 });
+  circle(svg, vx, vy, 4, { fill: C.a, stroke: C.paper, 'stroke-width': 1.5 });
+  text(svg, vx + 14, vy - 8, 'v = (3, 2, 2)', { 'font-size': 12, fill: C.a, 'font-weight': 600, 'text-anchor': 'start' });
+  text(svg, fx + 8, fy + 12, '(3, 2, 0)', { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'start' });
+}
+
+/* ---------- Figure 5.1: dot product sign (3 panels) ---------- */
+function drawFig_DotSign() {
+  const svg = document.querySelector('#fig-dot-sign svg');
+  const W = 600, H = 220;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  function panel(x0, label, sub, angle) {
+    rect(svg, x0, 20, 180, 180, { fill: '#fafaf6', stroke: C.grid });
+    const cx = x0 + 90, cy = 130;
+    const len = 60;
+    // a along x
+    arrow(svg, cx, cy, cx + len, cy, C.a, { which: 'a' });
+    // b at angle
+    const bx = cx + len * Math.cos(-angle * Math.PI/180);
+    const by = cy + len * Math.sin(-angle * Math.PI/180);
+    arrow(svg, cx, cy, bx, by, C.b, { which: 'b' });
+    // arc
+    const r = 22;
+    const ax2 = cx + r, ay2 = cy;
+    const bx2 = cx + r * Math.cos(-angle * Math.PI/180);
+    const by2 = cy + r * Math.sin(-angle * Math.PI/180);
+    const largeArc = angle > 180 ? 1 : 0;
+    path(svg, `M ${ax2} ${ay2} A ${r} ${r} 0 ${largeArc} 0 ${bx2} ${by2}`,
+      { stroke: C.inkSoft, fill: 'none' });
+    text(svg, cx + r + 14, cy - 4, label, { 'font-size': 12, fill: C.inkSoft, 'text-anchor': 'start' });
+    // bottom labels
+    text(svg, x0 + 90, 30, sub, { 'font-size': 13, fill: C.ink, 'font-weight': 600 });
+    text(svg, x0 + 90, 196, label === '60°' ? 'a · b > 0' : (label === '90°' ? 'a · b = 0' : 'a · b < 0'),
+      { 'font-size': 12, fill: C.inkSoft });
+  }
+
+  panel(10, '60°', 'acute', 60);
+  panel(210, '90°', 'right angle', 90);
+  panel(410, '135°', 'obtuse', 135);
+}
+
+/* ---------- Figure 5.2: dot product projection ---------- */
+function drawFig_DotProjection() {
+  const svg = document.querySelector('#fig-dot-projection svg');
+  const W = 520, H = 320;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+  const f = frame2D(svg, { x0: 30, y0: 20, w: W - 60, h: H - 50, xMin: -1, xMax: 5, yMin: -1, yMax: 4 });
+
+  const [ox, oy] = f.toPx(0, 0);
+  const [ax, ay] = f.toPx(4, 1);
+  const [bx, by] = f.toPx(2, 3);
+
+  // projection of b onto a: t = (a·b)/(a·a) = (4*2 + 1*3)/(16+1) = 11/17
+  const t = 11/17;
+  const [px, py] = f.toPx(4*t, 1*t);
+
+  // shadow drop from b to projection
+  line(svg, bx, by, px, py, { stroke: C.inkSoft, 'stroke-dasharray': '5 5' });
+
+  // projection segment as thick green
+  line(svg, ox, oy, px, py, { stroke: C.sum, 'stroke-width': 5, 'stroke-linecap': 'round' });
+
+  arrow(svg, ox, oy, ax, ay, C.a, { which: 'a' });
+  arrow(svg, ox, oy, bx, by, C.b, { which: 'b' });
+
+  text(svg, (ox + ax)/2, ay + 14, 'a', { 'font-size': 13, fill: C.a, 'font-weight': 600 });
+  text(svg, bx - 14, (oy + by)/2 - 4, 'b', { 'font-size': 13, fill: C.b, 'font-weight': 600, 'text-anchor': 'end' });
+  text(svg, px + 14, py + 18, 'projection of b onto a', { 'font-size': 12, fill: C.sum, 'text-anchor': 'start', 'font-weight': 600 });
+
+  // angle arc
+  const r = 26;
+  const angA = Math.atan2(1, 4);
+  const angB = Math.atan2(3, 2);
+  const arc1 = f.toPx(r/40 * Math.cos(angA), r/40 * Math.sin(angA));
+  const arc2 = f.toPx(r/40 * Math.cos(angB), r/40 * Math.sin(angB));
+  path(svg, `M ${arc1[0]} ${arc1[1]} A ${r} ${r} 0 0 0 ${arc2[0]} ${arc2[1]}`,
+    { stroke: C.inkSoft, fill: 'none', 'stroke-width': 1.4 });
+  text(svg, ox + 38, oy - 16, 'θ', { 'font-size': 13, fill: C.inkSoft });
+}
+
+/* ---------- Figure 6.1: cross product (3D, isometric) ---------- */
+function drawFig_Cross() {
+  const svg = document.querySelector('#fig-cross-product svg');
+  const W = 520, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const cx = 230, cy = 250, scale = 38;
+  const cos30 = Math.cos(Math.PI/6), sin30 = Math.sin(Math.PI/6);
+  const proj = (x, y, z) => [cx + (x - y) * cos30 * scale, cy - ((x + y) * sin30 + z) * scale];
+
+  // xy grid
+  for (let i = -2; i <= 4; i++) {
+    const [a,b] = proj(i, -2, 0); const [c,d] = proj(i, 4, 0);
+    line(svg, a, b, c, d, { stroke: C.grid });
+    const [a2,b2] = proj(-2, i, 0); const [c2,d2] = proj(4, i, 0);
+    line(svg, a2, b2, c2, d2, { stroke: C.grid });
+  }
+
+  const [ox, oy] = proj(0,0,0);
+  // axes
+  const [xx, xy] = proj(4, 0, 0);
+  const [yx, yy] = proj(0, 4, 0);
+  const [zx, zy] = proj(0, 0, 4);
+  arrow(svg, ox, oy, xx, xy, C.axisStrong, { which: 'axis', width: 1.3 });
+  arrow(svg, ox, oy, yx, yy, C.axisStrong, { which: 'axis', width: 1.3 });
+  arrow(svg, ox, oy, zx, zy, C.axisStrong, { which: 'axis', width: 1.3 });
+  text(svg, xx + 12, xy + 6, 'x', { 'font-size': 13, fill: C.inkSoft });
+  text(svg, yx - 12, yy + 6, 'y', { 'font-size': 13, fill: C.inkSoft });
+  text(svg, zx, zy - 10, 'z', { 'font-size': 13, fill: C.inkSoft });
+
+  // a = (3, 0, 0), b = (0, 2, 0)
+  const a = [3, 0, 0], b = [0, 2, 0];
+  const ap = proj(...a), bp = proj(...b);
+  const apb = proj(a[0]+b[0], a[1]+b[1], 0);
+  const cross = [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]];
+  const cp = proj(...cross);
+
+  // parallelogram fill
+  appendAll(svg, svgEl('polygon', {
+    points: `${ap[0]},${ap[1]} ${apb[0]},${apb[1]} ${bp[0]},${bp[1]} ${ox},${oy}`,
+    fill: 'rgba(109, 40, 217, 0.12)', stroke: C.cross, 'stroke-width': 1, 'stroke-dasharray': '4 4'
+  }));
+
+  arrow(svg, ox, oy, ap[0], ap[1], C.a, { which: 'a', width: 2.6 });
+  arrow(svg, ox, oy, bp[0], bp[1], C.b, { which: 'b', width: 2.6 });
+  arrow(svg, ox, oy, cp[0], cp[1], C.cross, { which: 'cross', width: 2.6 });
+
+  text(svg, ap[0] + 10, ap[1] + 14, 'a', { 'font-size': 13, fill: C.a, 'font-weight': 600 });
+  text(svg, bp[0] - 12, bp[1] + 14, 'b', { 'font-size': 13, fill: C.b, 'font-weight': 600, 'text-anchor': 'end' });
+  text(svg, cp[0] + 14, cp[1], 'a × b', { 'font-size': 13, fill: C.cross, 'font-weight': 600, 'text-anchor': 'start' });
+  text(svg, (ap[0] + bp[0])/2, (ap[1] + bp[1])/2 + 20, 'parallelogram area = ‖a × b‖',
+    { 'font-size': 11, fill: C.cross });
+}
+
+/* ---------- Figure 7.1: matrix transformation ---------- */
+function drawFig_MatrixTransform() {
+  const svg = document.querySelector('#fig-matrix-transform svg');
+  const W = 700, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  function panel(x0, M, label) {
+    const f = frame2D(svg, { x0, y0: 30, w: 320, h: 300, xMin: -2.5, xMax: 2.5, yMin: -2.5, yMax: 2.5 });
+    text(svg, x0 + 160, 22, label, { 'font-size': 13, fill: C.ink, 'font-weight': 600 });
+    // grid lines: image of rows of integer grid
+    const apply = (x, y) => [M[0]*x + M[1]*y, M[2]*x + M[3]*y];
+    for (let g = -2; g <= 2; g++) {
+      // vertical line x = g, y in [-2, 2]
+      const [a, b] = apply(g, -2);
+      const [c, d] = apply(g, 2);
+      const [pa1, pa2] = f.toPx(a, b);
+      const [pc1, pc2] = f.toPx(c, d);
+      line(svg, pa1, pa2, pc1, pc2, { stroke: C.gridSoft, 'stroke-width': 1 });
+      // horizontal line
+      const [a2, b2] = apply(-2, g);
+      const [c2, d2] = apply(2, g);
+      const [p1, p2] = f.toPx(a2, b2);
+      const [q1, q2] = f.toPx(c2, d2);
+      line(svg, p1, p2, q1, q2, { stroke: C.gridSoft, 'stroke-width': 1 });
+    }
+    // unit square image
+    const corners = [[0,0], [1,0], [1,1], [0,1]].map(([x,y]) => apply(x,y));
+    const pts = corners.map(c => f.toPx(c[0], c[1]));
+    appendAll(svg, svgEl('polygon', {
+      points: pts.map(p => p.join(',')).join(' '),
+      fill: 'rgba(29, 78, 216, 0.10)',
+      stroke: C.a, 'stroke-width': 1.2
+    }));
+    // basis arrows
+    const [ox, oy] = f.toPx(0, 0);
+    const e1 = apply(1, 0), e2 = apply(0, 1);
+    const [e1x, e1y] = f.toPx(e1[0], e1[1]);
+    const [e2x, e2y] = f.toPx(e2[0], e2[1]);
+    arrow(svg, ox, oy, e1x, e1y, C.a, { which: 'a', width: 2.6 });
+    arrow(svg, ox, oy, e2x, e2y, C.b, { which: 'b', width: 2.6 });
+  }
+
+  panel(10, [1, 0, 0, 1], 'before  (M = I)');
+  panel(360, [1, -0.5, 0.5, 1], 'after applying M');
+}
+
+/* ---------- Mini transformation panels ---------- */
+function drawTransPanel(svgSel, M, viewBox = [0, 0, 320, 260]) {
+  const svg = document.querySelector(svgSel);
+  const W = viewBox[2], H = viewBox[3];
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+  const f = frame2D(svg, { x0: 16, y0: 16, w: W - 32, h: H - 32, xMin: -2.2, xMax: 2.2, yMin: -2.2, yMax: 2.2 });
+  const apply = (x, y) => [M[0]*x + M[1]*y, M[2]*x + M[3]*y];
+
+  // before: faint shape
+  const corners = [[0,0],[1,0],[1,1],[0,1]];
+  const beforePts = corners.map(c => f.toPx(c[0], c[1]));
+  appendAll(svg, svgEl('polygon', {
+    points: beforePts.map(p => p.join(',')).join(' '),
+    fill: 'none', stroke: C.inkSoft, 'stroke-width': 1, 'stroke-dasharray': '4 4'
+  }));
+  // after
+  const afterPts = corners.map(c => apply(...c)).map(p => f.toPx(p[0], p[1]));
+  appendAll(svg, svgEl('polygon', {
+    points: afterPts.map(p => p.join(',')).join(' '),
+    fill: 'rgba(29, 78, 216, 0.10)', stroke: C.a, 'stroke-width': 1.5
+  }));
+  // basis arrows
+  const [ox, oy] = f.toPx(0, 0);
+  const e1 = apply(1, 0), e2 = apply(0, 1);
+  const [e1x, e1y] = f.toPx(e1[0], e1[1]);
+  const [e2x, e2y] = f.toPx(e2[0], e2[1]);
+  arrow(svg, ox, oy, e1x, e1y, C.a, { which: 'a', width: 2.4 });
+  arrow(svg, ox, oy, e2x, e2y, C.b, { which: 'b', width: 2.4 });
+}
+
+/* ---------- Figure 8.1: matrix multiplication ---------- */
+function drawFig_MatrixMul() {
+  const svg = document.querySelector('#fig-matrix-mul svg');
+  const W = 700, H = 240;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  // shape: an "L" so orientation matters
+  const SHAPE = [[0,0],[1.4,0],[1.4,0.5],[0.5,0.5],[0.5,1.6],[0,1.6]];
+  const B = [1, 0.6, 0, 1];          // shear
+  const A = [0, -1, 1, 0];           // rotate 90°
+  const AB = [
+    A[0]*B[0] + A[1]*B[2], A[0]*B[1] + A[1]*B[3],
+    A[2]*B[0] + A[3]*B[2], A[2]*B[1] + A[3]*B[3]
+  ];
+
+  function panel(x0, label, M) {
+    const f = frame2D(svg, { x0, y0: 30, w: 220, h: 200, xMin: -2.2, xMax: 2.2, yMin: -2.2, yMax: 2.2, drawTickLabels: false });
+    text(svg, x0 + 110, 22, label, { 'font-size': 12, fill: C.ink, 'font-weight': 600 });
+    const apply = (x, y) => [M[0]*x + M[1]*y, M[2]*x + M[3]*y];
+    const pts = SHAPE.map(p => apply(...p)).map(p => f.toPx(p[0], p[1]));
+    appendAll(svg, svgEl('polygon', {
+      points: pts.map(p => p.join(',')).join(' '),
+      fill: 'rgba(21, 128, 61, 0.10)', stroke: C.sum, 'stroke-width': 1.6
+    }));
+    const [ox, oy] = f.toPx(0, 0);
+    const e1 = apply(1, 0), e2 = apply(0, 1);
+    const [e1x, e1y] = f.toPx(e1[0], e1[1]);
+    const [e2x, e2y] = f.toPx(e2[0], e2[1]);
+    arrow(svg, ox, oy, e1x, e1y, C.a, { which: 'a', width: 2.0 });
+    arrow(svg, ox, oy, e2x, e2y, C.b, { which: 'b', width: 2.0 });
+  }
+
+  panel(10, 'apply B (shear)', B);
+  panel(240, 'then apply A (rotate 90°)',
+    [A[0]*B[0]+A[1]*B[2], A[0]*B[1]+A[1]*B[3], A[2]*B[0]+A[3]*B[2], A[2]*B[1]+A[3]*B[3]]);
+  panel(470, 'apply AB directly', AB);
+}
+
+/* ---------- Figure 9.1: distance rings ---------- */
+function drawFig_DistanceRings() {
+  const svg = document.querySelector('#fig-distance-rings svg');
+  const W = 460, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+  const f = frame2D(svg, { x0: 30, y0: 20, w: W - 60, h: H - 50, xMin: -3.5, xMax: 3.5, yMin: -3, yMax: 3 });
+
+  const [ox, oy] = f.toPx(0.5, -0.3);
+  for (let r = 0.5; r <= 3; r += 0.5) {
+    const rPx = r * f.sx;
+    circle(svg, ox, oy, rPx, { fill: 'none', stroke: C.cross, 'stroke-width': 1, 'stroke-dasharray': r % 1 === 0 ? '0' : '4 4', 'stroke-opacity': 0.55 });
+    if (r % 1 === 0) {
+      text(svg, ox + rPx + 12, oy - 4, 'r = ' + r, { 'font-size': 11, fill: C.cross, 'text-anchor': 'start' });
+    }
+  }
+  // center dot
+  circle(svg, ox, oy, 5, { fill: C.cross, stroke: C.paper, 'stroke-width': 2 });
+  text(svg, ox + 10, oy - 12, 'c', { 'font-size': 13, fill: C.cross, 'font-weight': 600, 'text-anchor': 'start' });
+
+  // a sample point x with line to c
+  const [px, py] = f.toPx(2.2, 1.6);
+  line(svg, ox, oy, px, py, { stroke: C.b, 'stroke-width': 1.6 });
+  circle(svg, px, py, 4, { fill: C.b });
+  text(svg, px + 12, py - 6, 'x', { 'font-size': 13, fill: C.b, 'font-weight': 600, 'text-anchor': 'start' });
+  text(svg, (ox + px)/2, (oy + py)/2 - 12, 'r = ‖x − c‖', { 'font-size': 12, fill: C.b, 'font-weight': 600 });
+}
+
+/* ---------- Figure 10.1: kernel curves ---------- */
+function drawFig_Kernels() {
+  const svg = document.querySelector('#fig-kernels svg');
+  const W = 600, H = 320;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const x0 = 60, y0 = 30, w = W - 100, h = H - 80;
+  const xMin = 0, xMax = 4;
+  const yMin = -0.2, yMax = 2.5;
+  const sx = w / (xMax - xMin), sy = h / (yMax - yMin);
+  const toPx = (ux, uy) => [x0 + (ux - xMin) * sx, y0 + h - (uy - yMin) * sy];
+
+  rect(svg, x0, y0, w, h, { fill: C.paper, stroke: C.grid });
+
+  // grid
+  for (let g = 0; g <= 4; g++) {
+    const [px,] = toPx(g, 0);
+    line(svg, px, y0, px, y0 + h, { stroke: C.grid });
+    text(svg, px, y0 + h + 14, String(g), { 'font-size': 11, fill: C.inkSoft });
+  }
+  for (let g = 0; g <= 2; g += 0.5) {
+    const [, py] = toPx(0, g);
+    line(svg, x0, py, x0 + w, py, { stroke: C.gridSoft });
+    text(svg, x0 - 8, py, g.toFixed(1), { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'end' });
+  }
+  // y = 0 line
+  const [, py0] = toPx(0, 0);
+  line(svg, x0, py0, x0 + w, py0, { stroke: C.axisStrong, 'stroke-width': 1 });
+
+  // axis labels
+  text(svg, x0 + w/2, y0 + h + 30, 'r', { 'font-size': 13, fill: C.ink, 'font-style': 'italic' });
+  text(svg, x0 - 36, y0 + h/2, 'φ(r)', { 'font-size': 13, fill: C.ink, 'font-style': 'italic', 'text-anchor': 'middle' });
+
+  const eps = 1;
+  const kernels = [
+    { name: 'Gaussian', color: C.a, f: r => Math.exp(-(eps*r)*(eps*r)) },
+    { name: 'Multiquadric', color: C.b, f: r => Math.sqrt(1 + (eps*r)*(eps*r)) },
+    { name: 'Inverse multiquadric', color: C.sum, f: r => 1/Math.sqrt(1 + (eps*r)*(eps*r)) },
+    { name: 'Thin-plate', color: C.cross, f: r => r < 1e-9 ? 0 : r*r*Math.log(r) }
+  ];
+
+  kernels.forEach((k, idx) => {
+    let d = '';
+    for (let i = 0; i <= 200; i++) {
+      const r = xMin + (xMax - xMin) * i / 200;
+      const v = Math.max(yMin, Math.min(yMax, k.f(r)));
+      const [px, py] = toPx(r, v);
+      d += (i === 0 ? 'M ' : ' L ') + px + ' ' + py;
+    }
+    path(svg, d, { stroke: k.color, 'stroke-width': 2, fill: 'none' });
+
+    // legend
+    const ly = y0 + 14 + idx * 18;
+    line(svg, x0 + w + 10, ly, x0 + w + 28, ly, { stroke: k.color, 'stroke-width': 2.5 });
+    text(svg, x0 + w + 32, ly, k.name, { 'font-size': 11, fill: C.ink, 'text-anchor': 'start' });
+  });
+}
+
+/* ---------- Figure 10.2: 2D Gaussian bump (heatmap rendered as small SVG rects) ---------- */
+function drawFig_Bump2D() {
+  const svg = document.querySelector('#fig-bump-2d svg');
+  const W = 460, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const x0 = 50, y0 = 30, w = W - 100, h = H - 70;
+  const xMin = -3, xMax = 3, yMin = -3, yMax = 3;
+  const N = 60; // grid cells per side
+  const cellW = w / N, cellH = h / N;
+
+  function mix(c1, c2, t) {
+    return [
+      Math.round(c1[0] + (c2[0]-c1[0])*t),
+      Math.round(c1[1] + (c2[1]-c1[1])*t),
+      Math.round(c1[2] + (c2[2]-c1[2])*t)
+    ];
+  }
+  // ramp: light cream → orange center
+  const cBg = [250, 247, 240];
+  const cMid = [250, 200, 130];
+  const cHi = [194, 65, 12];
+
+  for (let iy = 0; iy < N; iy++) {
+    for (let ix = 0; ix < N; ix++) {
+      const ux = xMin + (xMax - xMin) * (ix + 0.5) / N;
+      const uy = yMin + (yMax - yMin) * (iy + 0.5) / N;
+      const r2 = ux*ux + uy*uy;
+      const v = Math.exp(-r2);
+      let col;
+      if (v < 0.5) col = mix(cBg, cMid, v / 0.5);
+      else col = mix(cMid, cHi, (v - 0.5) / 0.5);
+      const px = x0 + ix * cellW;
+      const py = y0 + h - (iy + 1) * cellH;
+      rect(svg, px, py, cellW + 0.5, cellH + 0.5, {
+        fill: `rgb(${col[0]}, ${col[1]}, ${col[2]})`, stroke: 'none'
+      });
+    }
+  }
+
+  // border
+  rect(svg, x0, y0, w, h, { fill: 'none', stroke: C.axisStrong });
+
+  // axes labels & ticks
+  for (let g = -3; g <= 3; g++) {
+    const px = x0 + (g - xMin) / (xMax - xMin) * w;
+    text(svg, px, y0 + h + 14, String(g), { 'font-size': 11, fill: C.inkSoft });
+    const py = y0 + h - (g - yMin) / (yMax - yMin) * h;
+    text(svg, x0 - 8, py, String(g), { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'end' });
+  }
+
+  // center marker
+  const cxPx = x0 + (0 - xMin)/(xMax - xMin) * w;
+  const cyPx = y0 + h - (0 - yMin)/(yMax - yMin) * h;
+  circle(svg, cxPx, cyPx, 4, { fill: C.paper, stroke: C.ink, 'stroke-width': 1.5 });
+  text(svg, cxPx + 8, cyPx - 8, 'c = (0, 0)', { 'font-size': 11, fill: C.ink, 'text-anchor': 'start' });
+
+  text(svg, x0 + w/2, y0 + h + 30, 'x', { 'font-size': 12, fill: C.ink, 'font-style': 'italic' });
+  text(svg, x0 - 30, y0 + h/2, 'y', { 'font-size': 12, fill: C.ink, 'font-style': 'italic' });
+
+  // colorbar
+  const cbX = x0 + w + 16, cbY = y0, cbW = 14, cbH = h;
+  for (let i = 0; i < cbH; i++) {
+    const t = 1 - i / cbH;
+    let col;
+    if (t < 0.5) col = mix(cBg, cMid, t / 0.5);
+    else col = mix(cMid, cHi, (t - 0.5) / 0.5);
+    rect(svg, cbX, cbY + i, cbW, 1.2, { fill: `rgb(${col[0]}, ${col[1]}, ${col[2]})`, stroke: 'none' });
+  }
+  rect(svg, cbX, cbY, cbW, cbH, { fill: 'none', stroke: C.axisStrong });
+  text(svg, cbX + cbW + 4, cbY + 4, '1', { 'font-size': 10, fill: C.inkSoft, 'text-anchor': 'start' });
+  text(svg, cbX + cbW + 4, cbY + cbH - 4, '0', { 'font-size': 10, fill: C.inkSoft, 'text-anchor': 'start' });
+  text(svg, cbX + cbW + 4, cbY + cbH/2, 'φ(r)', { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'start' });
+}
+
+/* ---------- Figure 11.1: RBF interpolation 1D ---------- */
+function drawFig_RBFBumps() {
+  const svg = document.querySelector('#fig-rbf-bumps svg');
+  const W = 600, H = 280;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const x0 = 40, y0 = 20, w = W - 70, h = H - 60;
+  const xMin = -1.5, xMax = 3.5;
+  const yMin = -0.7, yMax = 1.6;
+  const sx = w / (xMax - xMin), sy = h / (yMax - yMin);
+  const toPx = (ux, uy) => [x0 + (ux - xMin) * sx, y0 + h - (uy - yMin) * sy];
+
+  rect(svg, x0, y0, w, h, { fill: C.paper, stroke: C.grid });
+
+  // grid lines
+  for (let g = -1; g <= 3; g++) {
+    const [px,] = toPx(g, 0);
+    line(svg, px, y0, px, y0 + h, { stroke: C.gridSoft });
+    text(svg, px, y0 + h + 14, String(g), { 'font-size': 11, fill: C.inkSoft });
+  }
+  [-0.5, 0, 0.5, 1, 1.5].forEach(g => {
+    const [, py] = toPx(0, g);
+    line(svg, x0, py, x0 + w, py, { stroke: g === 0 ? C.axisStrong : C.gridSoft, 'stroke-width': g === 0 ? 1 : 1 });
+    text(svg, x0 - 8, py, g.toFixed(1), { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'end' });
+  });
+
+  // points and weights from worked example
+  const pts = [{x: 0, y: 1, w: 1.338}, {x: 1, y: 0, w: -0.984}, {x: 2, y: 1, w: 1.338}];
+  const phi = (r) => Math.exp(-r*r);
+
+  // each individual weighted bump
+  pts.forEach((p) => {
+    let d = '';
+    for (let i = 0; i <= 200; i++) {
+      const xv = xMin + (xMax - xMin) * i / 200;
+      const v = p.w * phi(Math.abs(xv - p.x));
+      const [px, py] = toPx(xv, v);
+      d += (i === 0 ? 'M ' : ' L ') + px + ' ' + py;
+    }
+    path(svg, d, { stroke: C.b, 'stroke-width': 1.4, fill: 'none', 'stroke-opacity': 0.45, 'stroke-dasharray': '5 4' });
+  });
+
+  // sum curve
+  let dSum = '';
+  for (let i = 0; i <= 300; i++) {
+    const xv = xMin + (xMax - xMin) * i / 300;
+    let v = 0;
+    pts.forEach(p => { v += p.w * phi(Math.abs(xv - p.x)); });
+    const [px, py] = toPx(xv, v);
+    dSum += (i === 0 ? 'M ' : ' L ') + px + ' ' + py;
+  }
+  path(svg, dSum, { stroke: C.a, 'stroke-width': 2.4, fill: 'none' });
+
+  // data points
+  pts.forEach(p => {
+    const [px, py] = toPx(p.x, p.y);
+    circle(svg, px, py, 5.5, { fill: C.ink, stroke: C.paper, 'stroke-width': 2 });
+    text(svg, px, py - 12, `(${p.x}, ${p.y})`, { 'font-size': 11, fill: C.ink, 'font-weight': 600 });
+  });
+
+  // axis labels
+  text(svg, x0 + w/2, y0 + h + 30, 'x', { 'font-size': 12, fill: C.ink, 'font-style': 'italic' });
+  text(svg, x0 - 28, y0 + h/2, 'f(x)', { 'font-size': 12, fill: C.ink, 'font-style': 'italic' });
+
+  // legend
+  line(svg, x0 + 12, y0 + 14, x0 + 38, y0 + 14, { stroke: C.a, 'stroke-width': 2.4 });
+  text(svg, x0 + 44, y0 + 14, 'sum f(x)', { 'font-size': 11, fill: C.ink, 'text-anchor': 'start' });
+  line(svg, x0 + 12, y0 + 30, x0 + 38, y0 + 30, { stroke: C.b, 'stroke-width': 1.4, 'stroke-dasharray': '5 4', 'stroke-opacity': 0.7 });
+  text(svg, x0 + 44, y0 + 30, 'individual weighted bumps', { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'start' });
+}
+
+/* ---------- Figure 10.1: linear interpolation ---------- */
+function drawFig_LinearInterp() {
+  const svg = document.querySelector('#fig-linear-interp svg');
+  const W = 540, H = 280;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const x0 = 40, y0 = 20, w = W - 70, h = H - 50;
+  const xMin = -0.5, xMax = 5.5;
+  const yMin = -0.5, yMax = 3.5;
+  const sx = w / (xMax - xMin), sy = h / (yMax - yMin);
+  const toPx = (ux, uy) => [x0 + (ux - xMin) * sx, y0 + h - (uy - yMin) * sy];
+
+  rect(svg, x0, y0, w, h, { fill: C.paper, stroke: C.grid });
+
+  for (let g = 0; g <= 5; g++) {
+    const [px,] = toPx(g, 0);
+    line(svg, px, y0, px, y0 + h, { stroke: C.gridSoft });
+    text(svg, px, y0 + h + 14, String(g), { 'font-size': 11, fill: C.inkSoft });
+  }
+  for (let g = 0; g <= 3; g++) {
+    const [, py] = toPx(0, g);
+    line(svg, x0, py, x0 + w, py, { stroke: C.gridSoft });
+    text(svg, x0 - 8, py, String(g), { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'end' });
+  }
+
+  const data = [[0, 0.5], [1, 2.5], [2, 1], [3, 3], [4, 1.5], [5, 2]];
+
+  let d = '';
+  data.forEach((p, i) => {
+    const [px, py] = toPx(p[0], p[1]);
+    d += (i === 0 ? 'M ' : ' L ') + px + ' ' + py;
+  });
+  path(svg, d, { stroke: C.a, 'stroke-width': 2.2, fill: 'none' });
+
+  data.forEach(p => {
+    const [px, py] = toPx(p[0], p[1]);
+    circle(svg, px, py, 5, { fill: C.ink, stroke: C.paper, 'stroke-width': 2 });
+  });
+
+  text(svg, x0 + w/2, y0 + h + 30, 'x', { 'font-size': 12, fill: C.ink, 'font-style': 'italic' });
+  text(svg, x0 - 28, y0 + h/2, 'y', { 'font-size': 12, fill: C.ink, 'font-style': 'italic' });
+}
+
+/* Helpers used by Runge and spline figures */
+function lagrangePoly(xs, ys, x) {
+  let s = 0;
+  for (let i = 0; i < xs.length; i++) {
+    let t = ys[i];
+    for (let j = 0; j < xs.length; j++) if (j !== i) t *= (x - xs[j]) / (xs[i] - xs[j]);
+    s += t;
+  }
+  return s;
+}
+
+function buildNaturalSpline(xs, ys) {
+  const N = xs.length;
+  const n = N - 1;
+  const h = new Array(n);
+  for (let i = 0; i < n; i++) h[i] = xs[i+1] - xs[i];
+  const M = new Array(N).fill(0);
+  if (n < 2) {
+    return function(x) {
+      const t = (x - xs[0]) / (xs[1] - xs[0]);
+      return ys[0] + t * (ys[1] - ys[0]);
+    };
+  }
+  const sz = n - 1;
+  const sub = new Array(sz).fill(0);
+  const dia = new Array(sz).fill(0);
+  const sup = new Array(sz).fill(0);
+  const rhs = new Array(sz).fill(0);
+  for (let i = 1; i <= n-1; i++) {
+    const k = i - 1;
+    if (i > 1) sub[k] = h[i-1];
+    dia[k] = 2 * (h[i-1] + h[i]);
+    if (i < n-1) sup[k] = h[i];
+    rhs[k] = 6 * ((ys[i+1] - ys[i])/h[i] - (ys[i] - ys[i-1])/h[i-1]);
+  }
+  for (let k = 1; k < sz; k++) {
+    const m = sub[k] / dia[k-1];
+    dia[k] -= m * sup[k-1];
+    rhs[k] -= m * rhs[k-1];
+  }
+  const m = new Array(sz);
+  m[sz-1] = rhs[sz-1] / dia[sz-1];
+  for (let k = sz-2; k >= 0; k--) m[k] = (rhs[k] - sup[k] * m[k+1]) / dia[k];
+  for (let i = 1; i <= n-1; i++) M[i] = m[i-1];
+
+  return function(x) {
+    let i = 0;
+    for (let k = 0; k < n; k++) if (x >= xs[k] && x <= xs[k+1]) { i = k; break; }
+    if (x < xs[0]) i = 0;
+    if (x > xs[n]) i = n - 1;
+    const hi = h[i];
+    return M[i] * Math.pow(xs[i+1] - x, 3) / (6 * hi)
+         + M[i+1] * Math.pow(x - xs[i], 3) / (6 * hi)
+         + (ys[i] / hi - M[i] * hi / 6) * (xs[i+1] - x)
+         + (ys[i+1] / hi - M[i+1] * hi / 6) * (x - xs[i]);
+  };
+}
+
+/* ---------- Figure 10.2: Runge phenomenon, polynomial vs spline ---------- */
+function drawFig_Runge() {
+  const svg = document.querySelector('#fig-runge svg');
+  const W = 700, H = 320;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const N = 11;
+  const xs = [], ys = [];
+  for (let i = 0; i < N; i++) {
+    const x = -1 + 2 * i / (N - 1);
+    xs.push(x); ys.push(1 / (1 + 25 * x * x));
+  }
+  const spline = buildNaturalSpline(xs, ys);
+
+  function panel(x0base, label, fn, yLo, yHi) {
+    const x0 = x0base + 50, y0 = 30, w = 280, h = 230;
+    const xLo = -1.05, xHi = 1.05;
+    const sx = w / (xHi - xLo), sy = h / (yHi - yLo);
+    const toPx = (ux, uy) => [x0 + (ux - xLo) * sx, y0 + h - (uy - yLo) * sy];
+
+    rect(svg, x0, y0, w, h, { fill: C.paper, stroke: C.grid });
+
+    text(svg, x0 + w/2, 22, label, { 'font-size': 13, fill: C.ink, 'font-weight': 600 });
+
+    // y=0 axis
+    const [, py0] = toPx(0, 0);
+    line(svg, x0, py0, x0 + w, py0, { stroke: C.axisStrong, 'stroke-width': 1 });
+
+    [-1, -0.5, 0, 0.5, 1].forEach(g => {
+      const [px,] = toPx(g, 0);
+      line(svg, px, y0, px, y0 + h, { stroke: C.gridSoft });
+      text(svg, px, y0 + h + 14, g.toString(), { 'font-size': 10, fill: C.inkSoft });
+    });
+    [0, 0.5, 1].forEach(g => {
+      const [, py] = toPx(0, g);
+      text(svg, x0 - 6, py, g.toString(), { 'font-size': 10, fill: C.inkSoft, 'text-anchor': 'end' });
+    });
+
+    // true Runge function
+    let dTrue = '';
+    for (let i = 0; i <= 200; i++) {
+      const x = xLo + (xHi - xLo) * i / 200;
+      const v = 1 / (1 + 25 * x * x);
+      const vc = Math.max(yLo, Math.min(yHi, v));
+      const [px, py] = toPx(x, vc);
+      dTrue += (i === 0 ? 'M ' : ' L ') + px + ' ' + py;
+    }
+    path(svg, dTrue, { stroke: C.inkSoft, 'stroke-width': 1.2, fill: 'none', 'stroke-dasharray': '3 3' });
+
+    // fit
+    let dFit = '';
+    let started = false;
+    for (let i = 0; i <= 400; i++) {
+      const x = xLo + (xHi - xLo) * i / 400;
+      const v = fn(x);
+      if (!isFinite(v) || v < yLo - 0.5 || v > yHi + 0.5) {
+        // clip to range, leave segment break visible by skipping
+        const vc = Math.max(yLo, Math.min(yHi, v));
+        const [px, py] = toPx(x, vc);
+        dFit += (started ? ' L ' : 'M ') + px + ' ' + py;
+        started = true;
+        continue;
+      }
+      const [px, py] = toPx(x, v);
+      dFit += (started ? ' L ' : 'M ') + px + ' ' + py;
+      started = true;
+    }
+    path(svg, dFit, { stroke: C.a, 'stroke-width': 2, fill: 'none' });
+
+    // sample points
+    for (let i = 0; i < N; i++) {
+      const [px, py] = toPx(xs[i], ys[i]);
+      circle(svg, px, py, 3.5, { fill: C.ink, stroke: C.paper, 'stroke-width': 1.5 });
+    }
+  }
+
+  panel(0, 'degree-10 polynomial', x => lagrangePoly(xs, ys, x), -0.5, 1.8);
+  panel(360, 'natural cubic spline', spline, -0.3, 1.2);
+}
+
+/* ---------- Figure 11.1: cubic spline through 4 points ---------- */
+function drawFig_SplineExample() {
+  const svg = document.querySelector('#fig-spline-example svg');
+  const W = 540, H = 280;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const x0 = 40, y0 = 20, w = W - 70, h = H - 50;
+  const xMin = -0.3, xMax = 3.3;
+  const yMin = -0.6, yMax = 1.6;
+  const sx = w / (xMax - xMin), sy = h / (yMax - yMin);
+  const toPx = (ux, uy) => [x0 + (ux - xMin) * sx, y0 + h - (uy - yMin) * sy];
+
+  rect(svg, x0, y0, w, h, { fill: C.paper, stroke: C.grid });
+
+  [0, 1, 2, 3].forEach(g => {
+    const [px,] = toPx(g, 0);
+    line(svg, px, y0, px, y0 + h, { stroke: C.gridSoft });
+    text(svg, px, y0 + h + 14, g.toString(), { 'font-size': 11, fill: C.inkSoft });
+  });
+  [-0.5, 0, 0.5, 1, 1.5].forEach(g => {
+    const [, py] = toPx(0, g);
+    line(svg, x0, py, x0 + w, py, { stroke: g === 0 ? C.axisStrong : C.gridSoft, 'stroke-width': 1 });
+    text(svg, x0 - 8, py, g.toString(), { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'end' });
+  });
+
+  // Hardcoded worked example: M = (0, -4, 4, 0)
+  const xs = [0, 1, 2, 3];
+  const ys = [0, 1, 0, 1];
+  const M = [0, -4, 4, 0];
+  function spline(x) {
+    let i = 0;
+    for (let k = 0; k < 3; k++) if (x >= xs[k] && x <= xs[k+1]) { i = k; break; }
+    if (x < 0) i = 0;
+    if (x > 3) i = 2;
+    return M[i] * Math.pow(xs[i+1] - x, 3) / 6
+         + M[i+1] * Math.pow(x - xs[i], 3) / 6
+         + (ys[i] - M[i] / 6) * (xs[i+1] - x)
+         + (ys[i+1] - M[i+1] / 6) * (x - xs[i]);
+  }
+
+  let d = '';
+  for (let i = 0; i <= 300; i++) {
+    const x = xs[0] + (xs[xs.length-1] - xs[0]) * i / 300;
+    const v = spline(x);
+    const [px, py] = toPx(x, v);
+    d += (i === 0 ? 'M ' : ' L ') + px + ' ' + py;
+  }
+  path(svg, d, { stroke: C.a, 'stroke-width': 2.4, fill: 'none' });
+
+  // dashed vertical knot lines
+  [1, 2].forEach(kx => {
+    const [px,] = toPx(kx, 0);
+    line(svg, px, y0 + 6, px, y0 + h - 6, { stroke: C.inkSoft, 'stroke-width': 1, 'stroke-dasharray': '3 4', 'stroke-opacity': 0.5 });
+  });
+
+  xs.forEach((x, i) => {
+    const [px, py] = toPx(x, ys[i]);
+    circle(svg, px, py, 5.5, { fill: C.ink, stroke: C.paper, 'stroke-width': 2 });
+    text(svg, px, py - 12, `(${x}, ${ys[i]})`, { 'font-size': 11, fill: C.ink, 'font-weight': 600 });
+  });
+
+  text(svg, x0 + w/2, y0 + h + 30, 'x', { 'font-size': 12, fill: C.ink, 'font-style': 'italic' });
+  text(svg, x0 - 28, y0 + h/2, 'S(x)', { 'font-size': 12, fill: C.ink, 'font-style': 'italic' });
+}
+
+/* ===== run ===== */
+function renderMath() {
+  if (window.renderMathInElement) {
+    window.renderMathInElement(document.body, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true }
+      ],
+      throwOnError: false,
+      strict: false
+    });
+  } else {
+    setTimeout(renderMath, 80);
+  }
+}
+
+function initTOC() {
+  const links = Array.from(document.querySelectorAll('nav.toc a'));
+  const sections = links.map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const i = sections.indexOf(e.target);
+        if (i >= 0) {
+          links.forEach(l => l.classList.remove('active'));
+          links[i].classList.add('active');
+        }
+      }
+    });
+  }, { rootMargin: '-30% 0px -55% 0px' });
+  sections.forEach(s => obs.observe(s));
+}
+
+function drawAll() {
+  drawFig_NumberLine();
+  drawFig_Vector2D();
+  drawFig_VectorAdd();
+  drawFig_VectorSub();
+  drawFig_Vector3D();
+  drawFig_DotSign();
+  drawFig_DotProjection();
+  drawFig_Cross();
+  drawFig_MatrixTransform();
+  drawTransPanel('#fig-trans-rot svg', [0, -1, 1, 0]);
+  drawTransPanel('#fig-trans-scale svg', [1.7, 0, 0, 1.7]);
+  drawTransPanel('#fig-trans-shear svg', [1, 0.7, 0, 1]);
+  drawTransPanel('#fig-trans-reflect svg', [-1, 0, 0, 1]);
+  drawFig_MatrixMul();
+  drawFig_DistanceRings();
+  drawFig_LinearInterp();
+  drawFig_Runge();
+  drawFig_SplineExample();
+  drawFig_Kernels();
+  drawFig_Bump2D();
+  drawFig_RBFBumps();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => { drawAll(); initTOC(); renderMath(); });
+} else {
+  drawAll(); initTOC(); renderMath();
+}
+</script>
+</body>
+</html>
