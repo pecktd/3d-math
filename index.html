@@ -269,8 +269,9 @@
       <li><a href="#ch9">9. Distance between points</a></li>
       <li><a href="#ch10">10. Interpolation</a></li>
       <li><a href="#ch11">11. Cubic splines</a></li>
-      <li><a href="#ch12">12. Radial basis functions</a></li>
-      <li><a href="#ch13">13. RBF interpolation</a></li>
+      <li><a href="#ch12">12. Barycentric coordinates</a></li>
+      <li><a href="#ch13">13. Radial basis functions</a></li>
+      <li><a href="#ch14">14. RBF interpolation</a></li>
     </ol>
   </nav>
 
@@ -567,7 +568,7 @@
       <div class="math-display">$$ I \;=\; \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}, \qquad I\,\mathbf{v} = \mathbf{v}, \qquad I M = M I = M $$</div>
       <p>The <em>inverse</em> \(M^{-1}\), when it exists, undoes \(M\):</p>
       <div class="math-display">$$ M\,M^{-1} \;=\; M^{-1} M \;=\; I $$</div>
-      <p>Multiplying both sides of \(M\mathbf{x} = \mathbf{y}\) by \(M^{-1}\) gives \(\mathbf{x} = M^{-1}\mathbf{y}\). That is how we &ldquo;solve&rdquo; matrix equations. We need this in Chapters 11 and 13.</p>
+      <p>Multiplying both sides of \(M\mathbf{x} = \mathbf{y}\) by \(M^{-1}\) gives \(\mathbf{x} = M^{-1}\mathbf{y}\). That is how we &ldquo;solve&rdquo; matrix equations. We need this in Chapters 11, 12, and 14.</p>
       <p>An inverse exists only when \(\det(M) \neq 0\) — in plain words, when the transformation does not collapse area to zero.</p>
     </section>
 
@@ -684,14 +685,89 @@
       </figure>
 
       <div class="key"><strong>The matrix payoff</strong>
-        Splines reduce a continuous-curve problem to \(A\,\mathbf{w} = \mathbf{y}\), exactly the kind of system Chapter 8 introduced. For splines, \(A\) has only three non-zero diagonals, so the system is fast to solve. In the next chapters, RBF interpolation will follow the same pattern in higher dimensions, but with a dense \(A\) whose entries are kernel values.</div>
+        Splines reduce a continuous-curve problem to \(A\,\mathbf{w} = \mathbf{y}\), exactly the kind of system Chapter 8 introduced. For splines, \(A\) has only three non-zero diagonals, so the system is fast to solve. In Chapters 13 and 14, RBF interpolation will follow the same pattern in higher dimensions, but with a dense \(A\) whose entries are kernel values.</div>
     </section>
 
     <hr class="divider">
 
     <!-- ============== CHAPTER 12 ============== -->
     <section id="ch12">
-      <h2 class="chapter"><span class="num">Chapter 12</span>Radial basis functions</h2>
+      <h2 class="chapter"><span class="num">Chapter 12</span>Barycentric coordinates</h2>
+      <p class="lead">Three points define a triangle. Any other point can be written as a weighted average of the three. Those weights are the point's barycentric coordinates.</p>
+
+      <h3>Definition</h3>
+      <p>Take three points \(A\), \(B\), \(C\) in the plane (not collinear, so they form a real triangle). Pick any point \(P\) in the plane. Then there exist three numbers \(\alpha, \beta, \gamma\) such that</p>
+      <div class="math-display">$$ P \;=\; \alpha\,A + \beta\,B + \gamma\,C, \qquad \alpha + \beta + \gamma = 1 $$</div>
+      <p>The triple \((\alpha, \beta, \gamma)\) is the <em>barycentric coordinates</em> of \(P\) with respect to the triangle \(ABC\). They tell you how much of each vertex goes into making \(P\).</p>
+
+      <h3>Special points</h3>
+      <ul>
+        <li>\((1, 0, 0)\) is just \(A\). Similarly \((0, 1, 0) = B\) and \((0, 0, 1) = C\).</li>
+        <li>\(\big(\tfrac{1}{3}, \tfrac{1}{3}, \tfrac{1}{3}\big)\) is the <em>centroid</em> — the average of the three vertices, which is the triangle's centre of mass.</li>
+        <li>If one coordinate is zero, \(P\) lies on the opposite edge. For example, \(\gamma = 0\) means \(P\) is on the line \(AB\).</li>
+        <li>If all three coordinates are positive, \(P\) is strictly inside the triangle. If any is negative, \(P\) lies outside.</li>
+      </ul>
+
+      <figure id="fig-bary-special"><svg class="diagram" viewBox="0 0 540 360"></svg>
+        <figcaption><span class="figlabel">Figure 12.1.</span> Triangle \(ABC\) with several labelled points and their barycentric coordinates. Vertices, an edge midpoint, and the centroid all have simple coordinates.</figcaption>
+      </figure>
+
+      <h3>The area interpretation</h3>
+      <p>There is a beautiful geometric meaning. If \(P\) is inside the triangle, draw the three line segments from \(P\) to the vertices. This splits \(ABC\) into three sub-triangles \(PBC\), \(PCA\), \(PAB\). Then</p>
+      <div class="math-display">$$ \alpha = \frac{\text{Area}(PBC)}{\text{Area}(ABC)}, \quad \beta = \frac{\text{Area}(PCA)}{\text{Area}(ABC)}, \quad \gamma = \frac{\text{Area}(PAB)}{\text{Area}(ABC)} $$</div>
+      <p>The coordinate \(\alpha\) (the weight of \(A\)) is the relative area of the sub-triangle <em>opposite</em> \(A\). The three sub-areas always add up to the total — that is exactly why \(\alpha + \beta + \gamma = 1\). Because of this geometric meaning, barycentric coordinates are also called <em>areal coordinates</em>.</p>
+
+      <figure id="fig-bary-areas"><svg class="diagram" viewBox="0 0 540 360"></svg>
+        <figcaption><span class="figlabel">Figure 12.2.</span> Each barycentric coordinate equals the area of one sub-triangle divided by the whole. Here \(\alpha\) is the relative size of the sub-triangle opposite \(A\), and so on.</figcaption>
+      </figure>
+
+      <p>From Chapter 6 you know that the area of a triangle in 2D is half the magnitude of a cross product:</p>
+      <div class="math-display">$$ \text{Area}(ABC) \;=\; \tfrac{1}{2}\,\big|(B - A)\times(C - A)\big| $$</div>
+      <p>so areas (and therefore barycentric coordinates) are quick to compute from vector algebra alone.</p>
+
+      <h3>Computing the coordinates</h3>
+      <p>Given a point \(P\), you can find its barycentric coordinates by solving a small linear system. Use \(\gamma = 1 - \alpha - \beta\) to eliminate \(\gamma\):</p>
+      <div class="math-display">$$ P - C \;=\; \alpha\,(A - C) + \beta\,(B - C) $$</div>
+      <p>This is two scalar equations (one per coordinate of \(P\)) in two unknowns \(\alpha\) and \(\beta\) — exactly the kind of 2&times;2 system you solved in Chapter 8.</p>
+
+      <h3>Worked example</h3>
+      <p>Take \(A = (0, 0)\), \(B = (4, 0)\), \(C = (2, 3)\), and \(P = (2, 1)\).</p>
+      <p>Compute the differences:</p>
+      <div class="math-display">$$ A - C = (-2, -3), \quad B - C = (2, -3), \quad P - C = (0, -2) $$</div>
+      <p>The 2&times;2 system \(P - C = \alpha(A-C) + \beta(B-C)\) is</p>
+      <div class="math-display">$$
+        \begin{aligned}
+          -2\alpha + 2\beta &= 0 \\
+          -3\alpha - 3\beta &= -2
+        \end{aligned}
+      $$</div>
+      <p>From the first equation, \(\alpha = \beta\). Substitute into the second: \(-3\alpha - 3\alpha = -2\), so \(\alpha = \beta = \tfrac{1}{3}\). Then \(\gamma = 1 - \alpha - \beta = \tfrac{1}{3}\).</p>
+      <p>Check: \(\tfrac{1}{3}(0,0) + \tfrac{1}{3}(4,0) + \tfrac{1}{3}(2,3) = (2, 1) = P\). ✓ So \(P\) is the centroid, as expected from its symmetric position.</p>
+
+      <h3>Linear interpolation on a triangle</h3>
+      <p>Once you have barycentric coordinates, you have a free interpolation method. Given values \(f_A, f_B, f_C\) at the three vertices, define</p>
+      <div class="math-display">$$ f(P) \;=\; \alpha\,f_A + \beta\,f_B + \gamma\,f_C $$</div>
+      <p>This is the unique linear function that takes the right value at all three vertices. Inside the triangle it varies smoothly and linearly. It is the 2D analogue of the linear interpolation from Chapter 10.</p>
+
+      <figure id="fig-bary-interp"><svg class="diagram" viewBox="0 0 540 360"></svg>
+        <figcaption><span class="figlabel">Figure 12.3.</span> Linear interpolation on a triangle. Vertex values are \(f_A = 0\), \(f_B = 1\), \(f_C = 0.5\). Inside the triangle the value varies linearly, shown here as a colour gradient.</figcaption>
+      </figure>
+
+      <div class="key"><strong>Where this is used</strong>
+        <ul style="margin: 6px 0;">
+          <li><strong>Computer graphics:</strong> rendering triangles uses barycentric coordinates for textures, shading, and ray–triangle intersection tests.</li>
+          <li><strong>The finite element method</strong> uses them to define piecewise-linear basis functions on a triangulated domain.</li>
+          <li><strong>Mesh-based interpolation:</strong> if your data lives on a triangle mesh, barycentric coordinates blend the vertex values.</li>
+        </ul>
+        All of this needs a mesh. The next chapters tackle the case where you only have scattered points and no mesh — that is what radial basis functions are for.
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ============== CHAPTER 13 ============== -->
+    <section id="ch13">
+      <h2 class="chapter"><span class="num">Chapter 13</span>Radial basis functions</h2>
       <p class="lead">Apply any function to the distance \(r\). You get a function whose value depends only on how far you are from a center.</p>
 
       <p>A <em>radial basis function</em> (RBF) is a function \(\phi(r)\) of the single variable \(r\). Given a center \(\mathbf{c}\), the &ldquo;basis function centered at \(\mathbf{c}\)&rdquo; is</p>
@@ -711,7 +787,7 @@
       $$</div>
 
       <figure id="fig-kernels"><svg class="diagram" viewBox="0 0 600 320"></svg>
-        <figcaption><span class="figlabel">Figure 12.1.</span> The four classic RBF kernels as functions of \(r\), with \(\varepsilon = 1\). Gaussian and inverse multiquadric decay; multiquadric and thin-plate grow.</figcaption>
+        <figcaption><span class="figlabel">Figure 13.1.</span> The four classic RBF kernels as functions of \(r\), with \(\varepsilon = 1\). Gaussian and inverse multiquadric decay; multiquadric and thin-plate grow.</figcaption>
       </figure>
 
       <h3>What a 2D radial bump looks like</h3>
@@ -720,7 +796,7 @@
       <p>This is a smooth bump, tallest at the center, decaying outward. The level sets are circles — the same circles from Chapter 9.</p>
 
       <figure id="fig-bump-2d"><svg class="diagram" viewBox="0 0 460 360"></svg>
-        <figcaption><span class="figlabel">Figure 12.2.</span> A 2D Gaussian RBF centered at the origin (\(\varepsilon = 1\)). The shading represents \(\phi\big(\|\mathbf{x}\|\big)\): bright near the center, dim far away.</figcaption>
+        <figcaption><span class="figlabel">Figure 13.2.</span> A 2D Gaussian RBF centered at the origin (\(\varepsilon = 1\)). The shading represents \(\phi\big(\|\mathbf{x}\|\big)\): bright near the center, dim far away.</figcaption>
       </figure>
 
       <div class="key"><strong>Local versus global</strong>
@@ -729,9 +805,9 @@
 
     <hr class="divider">
 
-    <!-- ============== CHAPTER 13 ============== -->
-    <section id="ch13">
-      <h2 class="chapter"><span class="num">Chapter 13</span>RBF interpolation</h2>
+    <!-- ============== CHAPTER 14 ============== -->
+    <section id="ch14">
+      <h2 class="chapter"><span class="num">Chapter 14</span>RBF interpolation</h2>
       <p class="lead">Place several bumps, each at a known data point. Choose their weights so that the sum passes exactly through every point. This is where vectors, distances, and matrices all meet.</p>
 
       <h3>Setup</h3>
@@ -802,7 +878,7 @@
       <p>The next figure plots the three individual bumps (each \(w_i\,\phi(\|x - x_i\|)\)) and the resulting curve, which passes exactly through all three data points.</p>
 
       <figure id="fig-rbf-bumps"><svg class="diagram" viewBox="0 0 600 280"></svg>
-        <figcaption><span class="figlabel">Figure 13.1.</span> Three weighted Gaussian bumps (light), one centered at each data point. Their sum (the dark curve) passes through every black dot exactly.</figcaption>
+        <figcaption><span class="figlabel">Figure 14.1.</span> Three weighted Gaussian bumps (light), one centered at each data point. Their sum (the dark curve) passes through every black dot exactly.</figcaption>
       </figure>
 
       <h3>What you have learned</h3>
@@ -1863,6 +1939,236 @@ function drawFig_SplineExample() {
   text(svg, x0 - 28, y0 + h/2, 'S(x)', { 'font-size': 12, fill: C.ink, 'font-style': 'italic' });
 }
 
+/* ---------- Figure 12.1: barycentric special points ---------- */
+function drawFig_BarySpecial() {
+  const svg = document.querySelector('#fig-bary-special svg');
+  const W = 540, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const x0 = 50, y0 = 30, w = W - 100, h = H - 70;
+  const xMin = -0.7, xMax = 4.7;
+  const yMin = -0.7, yMax = 3.6;
+  const sx = w / (xMax - xMin), sy = h / (yMax - yMin);
+  const toPx = (ux, uy) => [x0 + (ux - xMin) * sx, y0 + h - (uy - yMin) * sy];
+
+  rect(svg, x0, y0, w, h, { fill: C.paper, stroke: C.grid });
+
+  for (let g = 0; g <= 4; g++) {
+    const [px,] = toPx(g, 0);
+    line(svg, px, y0, px, y0 + h, { stroke: C.gridSoft });
+    text(svg, px, y0 + h + 14, String(g), { 'font-size': 11, fill: C.inkSoft });
+  }
+  for (let g = 0; g <= 3; g++) {
+    const [, py] = toPx(0, g);
+    line(svg, x0, py, x0 + w, py, { stroke: C.gridSoft });
+    text(svg, x0 - 8, py, String(g), { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'end' });
+  }
+
+  const A = [0, 0], B = [4, 0], CC = [2, 3];
+  const Ap = toPx(...A), Bp = toPx(...B), Cp = toPx(...CC);
+
+  appendAll(svg, svgEl('polygon', {
+    points: `${Ap[0]},${Ap[1]} ${Bp[0]},${Bp[1]} ${Cp[0]},${Cp[1]}`,
+    fill: 'rgba(29, 78, 216, 0.07)', stroke: C.ink, 'stroke-width': 1.8
+  }));
+
+  function markVertex(p, label, col, baryStr, dx, dy) {
+    circle(svg, p[0], p[1], 6, { fill: col, stroke: C.paper, 'stroke-width': 2 });
+    text(svg, p[0] + dx, p[1] + dy, label, { 'font-size': 14, fill: col, 'font-weight': 700, 'text-anchor': 'middle' });
+    text(svg, p[0] + dx, p[1] + dy + 14, baryStr, { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'middle' });
+  }
+  markVertex(Ap, 'A', C.a, '(1, 0, 0)', -22, 6);
+  markVertex(Bp, 'B', C.b, '(0, 1, 0)', 22, 6);
+  markVertex(Cp, 'C', C.cross, '(0, 0, 1)', 0, -22);
+
+  // centroid
+  const G = [(A[0]+B[0]+CC[0])/3, (A[1]+B[1]+CC[1])/3];
+  const Gp = toPx(...G);
+  circle(svg, Gp[0], Gp[1], 5, { fill: C.sum, stroke: C.paper, 'stroke-width': 1.5 });
+  text(svg, Gp[0] + 12, Gp[1] - 4, 'centroid', { 'font-size': 11, fill: C.sum, 'font-weight': 600, 'text-anchor': 'start' });
+  text(svg, Gp[0] + 12, Gp[1] + 10, '(⅓, ⅓, ⅓)', { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'start' });
+
+  // midpoint of AB
+  const Mab = [(A[0]+B[0])/2, (A[1]+B[1])/2];
+  const Mp = toPx(...Mab);
+  circle(svg, Mp[0], Mp[1], 4, { fill: C.inkSoft, stroke: C.paper, 'stroke-width': 1.5 });
+  text(svg, Mp[0], Mp[1] + 18, 'midpoint of AB', { 'font-size': 10, fill: C.inkSoft });
+  text(svg, Mp[0], Mp[1] + 30, '(½, ½, 0)', { 'font-size': 10, fill: C.inkSoft });
+
+  // midpoint of BC
+  const Mbc = [(B[0]+CC[0])/2, (B[1]+CC[1])/2];
+  const Mbcp = toPx(...Mbc);
+  circle(svg, Mbcp[0], Mbcp[1], 4, { fill: C.inkSoft, stroke: C.paper, 'stroke-width': 1.5 });
+  text(svg, Mbcp[0] + 10, Mbcp[1] - 4, '(0, ½, ½)', { 'font-size': 10, fill: C.inkSoft, 'text-anchor': 'start' });
+}
+
+/* ---------- Figure 12.2: barycentric area interpretation ---------- */
+function drawFig_BaryAreas() {
+  const svg = document.querySelector('#fig-bary-areas svg');
+  const W = 540, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const x0 = 50, y0 = 30, w = W - 100, h = H - 70;
+  const xMin = -0.7, xMax = 4.7;
+  const yMin = -0.7, yMax = 3.6;
+  const sx = w / (xMax - xMin), sy = h / (yMax - yMin);
+  const toPx = (ux, uy) => [x0 + (ux - xMin) * sx, y0 + h - (uy - yMin) * sy];
+
+  rect(svg, x0, y0, w, h, { fill: C.paper, stroke: C.grid });
+
+  for (let g = 0; g <= 4; g++) {
+    const [px,] = toPx(g, 0);
+    line(svg, px, y0, px, y0 + h, { stroke: C.gridSoft });
+  }
+  for (let g = 0; g <= 3; g++) {
+    const [, py] = toPx(0, g);
+    line(svg, x0, py, x0 + w, py, { stroke: C.gridSoft });
+  }
+
+  const A = [0, 0], B = [4, 0], CC = [2, 3];
+  const P = [1.6, 1];
+  const Ap = toPx(...A), Bp = toPx(...B), Cp = toPx(...CC), Pp = toPx(...P);
+
+  // sub-triangles
+  appendAll(svg, svgEl('polygon', {
+    points: `${Pp[0]},${Pp[1]} ${Bp[0]},${Bp[1]} ${Cp[0]},${Cp[1]}`,
+    fill: 'rgba(29, 78, 216, 0.22)', stroke: C.a, 'stroke-width': 1.2
+  }));
+  appendAll(svg, svgEl('polygon', {
+    points: `${Pp[0]},${Pp[1]} ${Cp[0]},${Cp[1]} ${Ap[0]},${Ap[1]}`,
+    fill: 'rgba(194, 65, 12, 0.22)', stroke: C.b, 'stroke-width': 1.2
+  }));
+  appendAll(svg, svgEl('polygon', {
+    points: `${Pp[0]},${Pp[1]} ${Ap[0]},${Ap[1]} ${Bp[0]},${Bp[1]}`,
+    fill: 'rgba(109, 40, 217, 0.22)', stroke: C.cross, 'stroke-width': 1.2
+  }));
+
+  // outer triangle border
+  appendAll(svg, svgEl('polygon', {
+    points: `${Ap[0]},${Ap[1]} ${Bp[0]},${Bp[1]} ${Cp[0]},${Cp[1]}`,
+    fill: 'none', stroke: C.ink, 'stroke-width': 2
+  }));
+
+  // dashed segments from P to vertices (to emphasize splits)
+  line(svg, Pp[0], Pp[1], Ap[0], Ap[1], { stroke: C.ink, 'stroke-width': 1.2, 'stroke-dasharray': '3 3', 'stroke-opacity': 0.6 });
+  line(svg, Pp[0], Pp[1], Bp[0], Bp[1], { stroke: C.ink, 'stroke-width': 1.2, 'stroke-dasharray': '3 3', 'stroke-opacity': 0.6 });
+  line(svg, Pp[0], Pp[1], Cp[0], Cp[1], { stroke: C.ink, 'stroke-width': 1.2, 'stroke-dasharray': '3 3', 'stroke-opacity': 0.6 });
+
+  // sub-triangle labels at centroids
+  function tcent(p1, p2, p3) {
+    return [(p1[0]+p2[0]+p3[0])/3, (p1[1]+p2[1]+p3[1])/3];
+  }
+  const cAlpha = tcent(Pp, Bp, Cp);
+  const cBeta = tcent(Pp, Cp, Ap);
+  const cGamma = tcent(Pp, Ap, Bp);
+  text(svg, cAlpha[0], cAlpha[1], 'α', { 'font-size': 18, fill: C.a, 'font-weight': 700, 'font-style': 'italic' });
+  text(svg, cBeta[0], cBeta[1], 'β', { 'font-size': 18, fill: C.b, 'font-weight': 700, 'font-style': 'italic' });
+  text(svg, cGamma[0], cGamma[1] + 4, 'γ', { 'font-size': 18, fill: C.cross, 'font-weight': 700, 'font-style': 'italic' });
+
+  // vertex markers
+  circle(svg, Ap[0], Ap[1], 5, { fill: C.ink, stroke: C.paper, 'stroke-width': 2 });
+  circle(svg, Bp[0], Bp[1], 5, { fill: C.ink, stroke: C.paper, 'stroke-width': 2 });
+  circle(svg, Cp[0], Cp[1], 5, { fill: C.ink, stroke: C.paper, 'stroke-width': 2 });
+  text(svg, Ap[0] - 14, Ap[1] + 6, 'A', { 'font-size': 14, fill: C.ink, 'font-weight': 700 });
+  text(svg, Bp[0] + 14, Bp[1] + 6, 'B', { 'font-size': 14, fill: C.ink, 'font-weight': 700 });
+  text(svg, Cp[0], Cp[1] - 14, 'C', { 'font-size': 14, fill: C.ink, 'font-weight': 700 });
+
+  // P marker
+  circle(svg, Pp[0], Pp[1], 5, { fill: C.sum, stroke: C.paper, 'stroke-width': 2 });
+  text(svg, Pp[0] - 14, Pp[1] - 8, 'P', { 'font-size': 14, fill: C.sum, 'font-weight': 700 });
+
+  // legend
+  text(svg, x0 + w - 6, y0 + 18, 'α = Area(PBC) / Area(ABC)', { 'font-size': 11, fill: C.a, 'text-anchor': 'end', 'font-weight': 600 });
+  text(svg, x0 + w - 6, y0 + 34, 'β = Area(PCA) / Area(ABC)', { 'font-size': 11, fill: C.b, 'text-anchor': 'end', 'font-weight': 600 });
+  text(svg, x0 + w - 6, y0 + 50, 'γ = Area(PAB) / Area(ABC)', { 'font-size': 11, fill: C.cross, 'text-anchor': 'end', 'font-weight': 600 });
+}
+
+/* ---------- Figure 12.3: linear interpolation on a triangle ---------- */
+function drawFig_BaryInterp() {
+  const svg = document.querySelector('#fig-bary-interp svg');
+  const W = 540, H = 360;
+  rect(svg, 0, 0, W, H, { fill: C.paper, stroke: 'none' });
+
+  const x0 = 50, y0 = 30, w = W - 110, h = H - 70;
+  const xMin = -0.7, xMax = 4.7;
+  const yMin = -0.7, yMax = 3.6;
+  const sx = w / (xMax - xMin), sy = h / (yMax - yMin);
+  const toPx = (ux, uy) => [x0 + (ux - xMin) * sx, y0 + h - (uy - yMin) * sy];
+
+  rect(svg, x0, y0, w, h, { fill: C.paper, stroke: C.grid });
+
+  const A = [0, 0], B = [4, 0], CC = [2, 3];
+  const fA = 0, fB = 1, fC = 0.5;
+
+  function mix(c1, c2, t) {
+    return [
+      Math.round(c1[0] + (c2[0]-c1[0])*t),
+      Math.round(c1[1] + (c2[1]-c1[1])*t),
+      Math.round(c1[2] + (c2[2]-c1[2])*t)
+    ];
+  }
+  const cLo = [29, 78, 216];   // blue
+  const cMid = [240, 240, 240];
+  const cHi = [194, 65, 12];   // orange
+
+  function colorFor(t) {
+    t = Math.max(0, Math.min(1, t));
+    if (t < 0.5) return mix(cLo, cMid, t * 2);
+    return mix(cMid, cHi, (t - 0.5) * 2);
+  }
+
+  // Sample on a fine grid; only fill cells inside the triangle
+  const N = 70;
+  const cellW = w / N, cellH = h / N;
+  const denom = (B[1] - CC[1]) * (A[0] - CC[0]) + (CC[0] - B[0]) * (A[1] - CC[1]);
+  for (let iy = 0; iy < N; iy++) {
+    for (let ix = 0; ix < N; ix++) {
+      const ux = xMin + (xMax - xMin) * (ix + 0.5) / N;
+      const uy = yMin + (yMax - yMin) * (iy + 0.5) / N;
+      const alpha = ((B[1] - CC[1]) * (ux - CC[0]) + (CC[0] - B[0]) * (uy - CC[1])) / denom;
+      const beta = ((CC[1] - A[1]) * (ux - CC[0]) + (A[0] - CC[0]) * (uy - CC[1])) / denom;
+      const gamma = 1 - alpha - beta;
+      if (alpha < 0 || beta < 0 || gamma < 0) continue;
+      const v = alpha * fA + beta * fB + gamma * fC;
+      const col = colorFor(v);
+      const px = x0 + ix * cellW;
+      const py = y0 + h - (iy + 1) * cellH;
+      rect(svg, px, py, cellW + 0.6, cellH + 0.6, {
+        fill: `rgb(${col[0]}, ${col[1]}, ${col[2]})`, stroke: 'none'
+      });
+    }
+  }
+
+  // triangle border
+  const Ap = toPx(...A), Bp = toPx(...B), Cp = toPx(...CC);
+  appendAll(svg, svgEl('polygon', {
+    points: `${Ap[0]},${Ap[1]} ${Bp[0]},${Bp[1]} ${Cp[0]},${Cp[1]}`,
+    fill: 'none', stroke: C.ink, 'stroke-width': 2
+  }));
+
+  // vertices with labels
+  function markV(p, name, val, dx, dy) {
+    const col = colorFor(val);
+    circle(svg, p[0], p[1], 7, { fill: `rgb(${col[0]}, ${col[1]}, ${col[2]})`, stroke: C.ink, 'stroke-width': 1.5 });
+    text(svg, p[0] + dx, p[1] + dy, `${name} = ${val}`, { 'font-size': 12, fill: C.ink, 'font-weight': 700 });
+  }
+  markV(Ap, 'fA', fA, -34, 6);
+  markV(Bp, 'fB', fB, 34, 6);
+  markV(Cp, 'fC', fC, 0, -16);
+
+  // colorbar
+  const cbX = x0 + w + 16, cbY = y0, cbW = 14, cbH = h;
+  for (let i = 0; i < cbH; i++) {
+    const t = 1 - i / cbH;
+    const col = colorFor(t);
+    rect(svg, cbX, cbY + i, cbW, 1.2, { fill: `rgb(${col[0]}, ${col[1]}, ${col[2]})`, stroke: 'none' });
+  }
+  rect(svg, cbX, cbY, cbW, cbH, { fill: 'none', stroke: C.axisStrong });
+  text(svg, cbX + cbW + 4, cbY + 6, '1', { 'font-size': 10, fill: C.inkSoft, 'text-anchor': 'start' });
+  text(svg, cbX + cbW + 4, cbY + cbH - 4, '0', { 'font-size': 10, fill: C.inkSoft, 'text-anchor': 'start' });
+  text(svg, cbX + cbW + 4, cbY + cbH/2, 'f', { 'font-size': 11, fill: C.inkSoft, 'text-anchor': 'start' });
+}
+
 /* ===== run ===== */
 function renderMath() {
   if (window.renderMathInElement) {
@@ -1916,6 +2222,9 @@ function drawAll() {
   drawFig_LinearInterp();
   drawFig_Runge();
   drawFig_SplineExample();
+  drawFig_BarySpecial();
+  drawFig_BaryAreas();
+  drawFig_BaryInterp();
   drawFig_Kernels();
   drawFig_Bump2D();
   drawFig_RBFBumps();
